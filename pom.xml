@@ -115,7 +115,11 @@
                 <target name="move-product-zips">
                   <move todir="${project.build.directory}\deploy" verbose="true" overwrite="true">
                     <fileset dir="${project.build.directory}" includes="*.jar" />
-                  </move>   
+                    <regexpmapper from="dependencytool-(.*)(-jar.*)" to="dependencytool\2"/>
+                  </move>
+                  <move todir="${project.build.directory}\deploy\javadoc" verbose="true" overwrite="true">
+                    <fileset dir="${project.build.directory}\apidocs"/>
+                  </move>  
                 </target>
               </configuration>
             </execution>
