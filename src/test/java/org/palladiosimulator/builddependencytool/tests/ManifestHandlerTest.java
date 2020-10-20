@@ -15,7 +15,7 @@ public class ManifestHandlerTest {
         bundles.add("org.palladiosimulator.pcm");
         ManifestHandler handler = new ManifestHandler("Palladio-Core-PCM", bundles);
         Set<String> dependencies = handler.getDependencies();
-        assert(dependencies.size() == 11);
+        assert(dependencies.size() == 12);
         assert(dependencies.contains("org.eclipse.core.runtime"));
         assert(dependencies.contains("org.eclipse.emf.ecore"));
         assert(dependencies.contains("org.eclipse.ocl"));
@@ -27,6 +27,7 @@ public class ManifestHandlerTest {
         assert(dependencies.contains("de.uka.ipd.sdq.stoex"));
         assert(dependencies.contains("de.uka.ipd.sdq.units"));
         assert(dependencies.contains("de.uka.ipd.sdq.errorhandling"));
+        assert(dependencies.contains("org.palladiosimulator.pcm.workflow"));
     }
     
     @Test
@@ -36,7 +37,7 @@ public class ManifestHandlerTest {
         bundles.add("org.palladiosimulator.pcm.ui");
         ManifestHandler handler = new ManifestHandler("Palladio-Core-PCM", bundles);
         Set<String> dependencies = handler.getDependencies();
-        assert(dependencies.size() == 22);
+        assert(dependencies.size() == 23);
         assert(dependencies.contains("org.eclipse.core.runtime"));
         assert(dependencies.contains("org.eclipse.emf.ecore"));
         assert(dependencies.contains("org.eclipse.ocl"));
@@ -59,6 +60,7 @@ public class ManifestHandlerTest {
         assert(dependencies.contains("org.eclipse.ui.ide"));
         assert(dependencies.contains("org.eclipse.sirius.ui"));
         assert(dependencies.contains("org.eclipse.ui.workbench"));
+        assert(dependencies.contains("org.palladiosimulator.pcm.workflow"));
     }
 
 }
