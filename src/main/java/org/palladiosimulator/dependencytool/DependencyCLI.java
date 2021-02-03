@@ -69,7 +69,8 @@ public class DependencyCLI {
         }
         
         try {
-            DependencyCalculator dc = new DependencyCalculator(org, token, updateSiteType, reposToIgnore);
+            GitHubAPIHandler apiHandler = new GitHubAPIHandler(org, token, reposToIgnore);
+            DependencyCalculator dc = new DependencyCalculator(apiHandler, updateSiteType);
             Set<RepositoryObject> repositories = dc.calculateDependencies(includeImports);
             GraphicalRepresentation graphRep = new GraphicalRepresentation(repositories);
             graphRep.createTopologyHierarchy();

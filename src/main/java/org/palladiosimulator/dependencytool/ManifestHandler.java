@@ -16,12 +16,18 @@ public class ManifestHandler {
 
     private static final Logger LOGGER = Logger.getLogger(ManifestHandler.class.getName());
     
-    private String repoName;
-    private Set<String> bundles;
+    private final HttpGetReader httpGetReader;
+    private final String repoName;
+    private final Set<String> bundles;
     
     public ManifestHandler(String repoName, Set<String> bundles) {
+        this(repoName, bundles, url -> url.openStream());
+    }
+    
+    public ManifestHandler(String repoName, Set<String> bundles, HttpGetReader httpGetReader) {
         this.repoName = repoName;
         this.bundles = bundles;
+        this.httpGetReader = httpGetReader;
     }
     
     /**
@@ -35,7 +41,7 @@ public class ManifestHandler {
         for (URI manifestURI : manifestURIs) {
             Optional<ManifestMF> manifest = Optional.empty();
             try {
-                manifest = Optional.of(new ManifestMF(manifestURI.toURL().openStream()));
+                manifest = Optional.of(new ManifestMF(httpGetReader.read(manifestURI.toURL())));
             } catch (IOException e) {
                 LOGGER.warning("No Manifest.MF found for " + manifestURI);
             }

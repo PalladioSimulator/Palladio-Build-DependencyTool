@@ -32,14 +32,12 @@ public class DependencyCalculator {
     /**
      * Create a new DependencyCalculator object to handle the assignment of dependencies.
      * 
-     * @param organization The name of the organization for which the dependencies should be calculated.
-     * @param authToken A GitHub authentication token to gain access to the API pages without timeouts.
+     * @param ghRepo The API handler to use.
      * @param type The type of the update site to analyze. Can be nightly or release.
-     * @param reposToIgnore A list of repositories which should be ignored.
      * @throws IOException 
      */
-    public DependencyCalculator(String organization, String authToken, UpdateSiteTypes type, List<String> reposToIgnore) throws IOException {
-        ghRepo = new GitHubAPIHandler(organization, authToken, reposToIgnore);
+    public DependencyCalculator(GitHubAPIHandler ghRepo, UpdateSiteTypes type) throws IOException {
+        this.ghRepo = ghRepo;
         this.type = type;
         repositories = new HashMap<>();
     }

@@ -13,6 +13,7 @@ import org.osgi.util.promise.PromiseFactory;
 
 import aQute.bnd.http.HttpClient;
 import aQute.p2.api.Artifact;
+import aQute.p2.packed.Unpack200;
 import aQute.p2.provider.P2Impl;
 
 /**
@@ -25,8 +26,7 @@ public class P2RepositoryReader implements Closeable {
     public P2RepositoryReader() {
         executor = Executors.newFixedThreadPool(4);
     }
-    
-    
+
     /**
      * Returns all features from the update site.
      *  
@@ -38,7 +38,7 @@ public class P2RepositoryReader implements Closeable {
         URI repoURI = URI.create(path);
         Set<String> features = new HashSet<>();
         try (HttpClient client = new HttpClient()) {
-            P2Impl p2 = new P2Impl(client, repoURI, new PromiseFactory(executor));
+            P2Impl p2 = new P2Impl(new Unpack200(), client, repoURI, new PromiseFactory(executor));
             Collection<Artifact> artifacts = p2.getFeatures();
             artifacts.forEach(a -> features.add(a.id));
         } catch (Exception e) {
@@ -58,7 +58,7 @@ public class P2RepositoryReader implements Closeable {
         URI repoURI = URI.create(path);
         Set<String> bundles = new HashSet<>();
         try (HttpClient client = new HttpClient()) {
-            P2Impl p2 = new P2Impl(client, repoURI, new PromiseFactory(executor));
+            P2Impl p2 = new P2Impl(new Unpack200(), client, repoURI, new PromiseFactory(executor));
             Collection<Artifact> artifacts = p2.getBundles();
             artifacts.forEach(a -> bundles.add(a.id));
         } catch (Exception e) {
