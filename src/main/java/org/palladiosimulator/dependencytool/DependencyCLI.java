@@ -14,6 +14,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.xml.sax.SAXException;
@@ -37,8 +38,13 @@ public class DependencyCLI {
      * @throws ParseException
      */
     public static void main(String[] args) throws ParseException {
-        
         Options options = createOptions();
+        
+        if (containsHelp(args)) {
+            HelpFormatter fmt = new HelpFormatter();
+            fmt.printHelp("Help", options);
+            return;
+        }
         
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = parser.parse(options, args);
@@ -93,6 +99,18 @@ public class DependencyCLI {
         .addOption("ri", "repository-ignore", true, "Specify one or more repositories which should be ignored when calculating dependencies. Split by an underscore.")
         .addOption("rif", "repository-ignore-file", true , "Path to file with repositories to ignore. Each repository name must be in a new line.");
         return options;
+    }
+    
+    private static boolean containsHelp(String[] args) {
+        Options options = new Options();
+        options.addOption("h", "help", false, "Prints usage information.");
+        CommandLineParser parser = new DefaultParser();
+        try {
+            CommandLine cmd = parser.parse(options, args);
+            return cmd.hasOption("help");
+        } catch (ParseException e) {
+            return false;
+        }
     }
     
     private static void createOutput(boolean dependencyOutput, boolean jsonOutput, Set<RepositoryObject> repositories, List<Set<RepositoryObject>> topology) throws JsonProcessingException {
