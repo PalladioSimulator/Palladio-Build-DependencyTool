@@ -54,6 +54,7 @@ public class DependencyCLI {
         boolean includeImports = cmd.hasOption("ii");
         boolean jsonOutput = cmd.hasOption("json");
         boolean dependencyOutput = cmd.hasOption("do");
+        boolean includeOptionals = cmd.hasOption("co");
         UpdateSiteTypes updateSiteType = UpdateSiteTypes.NIGHTLY;
         List<String> reposToIgnore = new ArrayList<>();
         
@@ -73,11 +74,11 @@ public class DependencyCLI {
                 LOGGER.warning("Something went wrong while opening the file, please make sure the path is correct.");
             }
         }
-        
+
         try {
             GitHubAPIHandler apiHandler = new GitHubAPIHandler(org, token, reposToIgnore);
             DependencyCalculator dc = new DependencyCalculator(apiHandler, updateSiteType);
-            Set<RepositoryObject> repositories = dc.calculateDependencies(includeImports);
+            Set<RepositoryObject> repositories = dc.calculateDependencies(includeImports, includeOptionals);
             GraphicalRepresentation graphRep = new GraphicalRepresentation(repositories);
             graphRep.createTopologyHierarchy();
             List<Set<RepositoryObject>> topology = graphRep.getTopologyHierachy();
@@ -97,7 +98,8 @@ public class DependencyCLI {
         .addOption("json", "json-output", false, "Use more informational json output.")
         .addOption("do", "dependency-output", false, "Use dependencies per repo output")
         .addOption("ri", "repository-ignore", true, "Specify one or more repositories which should be ignored when calculating dependencies. Split by an underscore.")
-        .addOption("rif", "repository-ignore-file", true , "Path to file with repositories to ignore. Each repository name must be in a new line.");
+        .addOption("rif", "repository-ignore-file", true , "Path to file with repositories to ignore. Each repository name must be in a new line.")
+        .addOption("co", "consider-optional-dependencies", false, "Also consider optional dependencies (default is to NOT consider them).");
         return options;
     }
     

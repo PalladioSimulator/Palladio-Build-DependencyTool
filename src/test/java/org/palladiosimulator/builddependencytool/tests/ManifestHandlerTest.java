@@ -34,7 +34,7 @@ public class ManifestHandlerTest {
         Set<String> bundles = new HashSet<>();
         bundles.add("org.palladiosimulator.pcm");
         ManifestHandler handler = new ManifestHandler("Palladio-Core-PCM", bundles, HTTP_GET_READER);
-        Set<String> dependencies = handler.getDependencies();
+        Set<String> dependencies = handler.getDependencies(true);
         assertTrue(dependencies.size() == 13);
         assertTrue(dependencies.contains("org.eclipse.core.runtime"));
         assertTrue(dependencies.contains("org.eclipse.emf.ecore"));
@@ -57,7 +57,7 @@ public class ManifestHandlerTest {
         bundles.add("org.palladiosimulator.pcm");
         bundles.add("org.palladiosimulator.pcm.ui");
         ManifestHandler handler = new ManifestHandler("Palladio-Core-PCM", bundles, HTTP_GET_READER);
-        Set<String> dependencies = handler.getDependencies();
+        Set<String> dependencies = handler.getDependencies(true);
         assertTrue(dependencies.size() == 24);
         assertTrue(dependencies.contains("org.eclipse.core.runtime"));
         assertTrue(dependencies.contains("org.eclipse.emf.ecore"));

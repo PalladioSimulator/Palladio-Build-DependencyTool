@@ -32,10 +32,10 @@ public class ManifestHandler {
     
     /**
      * Parses dependencies for all given bundles.
-     * 
+     * @param includeOptionals True if optional bundles shall be considered.
      * @return A set of all dependencies from manifest files.
      */
-    public Set<String> getDependencies() {
+    public Set<String> getDependencies(boolean includeOptionals) {
         Set<String> dependencies = new HashSet<>();
         Set<URI> manifestURIs = buildManifestURIs();
         for (URI manifestURI : manifestURIs) {
@@ -46,7 +46,7 @@ public class ManifestHandler {
                 LOGGER.warning("No Manifest.MF found for " + manifestURI);
             }
             if (manifest.isPresent()) {
-                dependencies.addAll(manifest.get().getRequiredBundles());
+                dependencies.addAll(manifest.get().getRequiredBundles(includeOptionals));
             }
         }
         return dependencies;

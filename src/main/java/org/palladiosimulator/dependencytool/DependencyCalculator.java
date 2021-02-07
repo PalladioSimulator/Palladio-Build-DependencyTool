@@ -46,14 +46,15 @@ public class DependencyCalculator {
      * Assign dependencies to the repositories.
      * 
      * @param includeImports Considers imports in the feature.xml while calculating dependencies if true.
+     * @param includeOptionals Considers optional bundles.
      * @return A Set of RepositoryObjects with their dependencies set in RepositoryObject.getDependency();
      * @throws IOException
      * @throws ParserConfigurationException
      * @throws SAXException
      */
-    public Set<RepositoryObject> calculateDependencies(Boolean includeImports) throws IOException, ParserConfigurationException, SAXException {
+    public Set<RepositoryObject> calculateDependencies(boolean includeImports, boolean includeOptionals) throws IOException, ParserConfigurationException, SAXException {
         for (String repoName : ghRepo.getRepoNames()) {
-            RepositoryObject repo = new RepositoryObject(repoName, ghRepo, includeImports);
+            RepositoryObject repo = new RepositoryObject(repoName, ghRepo, includeImports, includeOptionals);
             repositories.put(repoName, repo);
         }
         calculateProvided();

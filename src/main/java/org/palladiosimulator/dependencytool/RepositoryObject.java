@@ -74,11 +74,12 @@ public class RepositoryObject {
      * @param repositoryName The name of the repository.
      * @param handler A GitHubAPIHandler to gain access to the information of the existing repository.
      * @param includeImports If true the dependencies of this repository will also contain imported plugins and features.
+     * @param includeOptionals If true the dependencies of this repository will also contain optional plugins.
      * @throws IOException
      * @throws ParserConfigurationException
      * @throws SAXException
      */
-    public RepositoryObject(String repositoryName, GitHubAPIHandler handler, boolean includeImports) throws IOException, ParserConfigurationException, SAXException {
+    public RepositoryObject(String repositoryName, GitHubAPIHandler handler, boolean includeImports, boolean includeOptionals) throws IOException, ParserConfigurationException, SAXException {
         this.repositoryName = repositoryName;
         this.updateSite = PalladioConstants.UPDATESITE + repositoryName.toLowerCase() + "/";
         this.handler = handler;
@@ -86,7 +87,7 @@ public class RepositoryObject {
         requiredBundles = new HashSet<>();
         requiredFeatures = new HashSet<>();
         dependencies = new HashSet<>();
-        calculateRequired(includeImports);
+        calculateRequired(includeImports, includeOptionals);
     }
     
     @Override 
@@ -103,10 +104,10 @@ public class RepositoryObject {
         this.dependencies.addAll(dependencies);
     }
     
-    private void calculateRequired(Boolean includeImports) throws IOException, ParserConfigurationException, SAXException {
+    private void calculateRequired(Boolean includeImports, boolean includeOptionals) throws IOException, ParserConfigurationException, SAXException {
         // get required bundles from all bundle Manifest.MF
         ManifestHandler mfHandler = new ManifestHandler(repositoryName, handler.getBundles(repositoryName));
-        requiredBundles.addAll(mfHandler.getDependencies());
+        requiredBundles.addAll(mfHandler.getDependencies(includeOptionals));
         
         // get required bundles and features from all Feature.xml
         Set<String> featureXMLs = new HashSet<>();
