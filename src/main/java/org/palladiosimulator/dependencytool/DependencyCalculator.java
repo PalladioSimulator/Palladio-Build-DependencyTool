@@ -10,10 +10,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.xml.sax.SAXException;
-
 /**
  *  Handles the assignment of provided objects to required objects.
  */
@@ -34,9 +30,8 @@ public class DependencyCalculator {
      * 
      * @param ghRepo The API handler to use.
      * @param type The type of the update site to analyze. Can be nightly or release.
-     * @throws IOException 
      */
-    public DependencyCalculator(GitHubAPIHandler ghRepo, UpdateSiteTypes type) throws IOException {
+    public DependencyCalculator(GitHubAPIHandler ghRepo, UpdateSiteTypes type) {
         this.ghRepo = ghRepo;
         this.type = type;
         repositories = new HashMap<>();
@@ -48,11 +43,9 @@ public class DependencyCalculator {
      * @param includeImports Considers imports in the feature.xml while calculating dependencies if true.
      * @param includeOptionals Considers optional bundles.
      * @return A Set of RepositoryObjects with their dependencies set in RepositoryObject.getDependency();
-     * @throws IOException
-     * @throws ParserConfigurationException
-     * @throws SAXException
+     * @throws IOException Thrown if an error appears while reading the repository.
      */
-    public Set<RepositoryObject> calculateDependencies(boolean includeImports, boolean includeOptionals) throws IOException, ParserConfigurationException, SAXException {
+    public Set<RepositoryObject> calculateDependencies(boolean includeImports, boolean includeOptionals) throws IOException {
         for (String repoName : ghRepo.getRepoNames()) {
             RepositoryObject repo = new RepositoryObject(repoName, ghRepo, includeImports, includeOptionals);
             repositories.put(repoName, repo);

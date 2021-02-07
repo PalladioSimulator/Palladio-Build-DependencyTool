@@ -32,7 +32,7 @@ public class P2RepositoryReader implements Closeable {
      *  
      * @param path Path to the repository that should be read.
      * @return A set of names of features provided by this repository.
-     * @throws IOException
+     * @throws IOException Thrown if the P2 repository could not be read.
      */
     public Set<String> readProvidedFeatures(String path) throws IOException {
         URI repoURI = URI.create(path);
@@ -52,7 +52,7 @@ public class P2RepositoryReader implements Closeable {
      * 
      * @param path Path to the repository that should be read.
      * @return A set of names of bundles provided by this repository.
-     * @throws IOException
+     * @throws IOException Thrown if the P2 repository could not be read.
      */
     public Set<String> readProvidedBundles(String path) throws IOException {
         URI repoURI = URI.create(path);

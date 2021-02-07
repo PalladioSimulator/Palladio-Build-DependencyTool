@@ -29,7 +29,7 @@ public class GitHubAPIHandler {
      * @param organization The name of the GitHub organization with which the handler will interact.
      * @param authToken Authentication token to get a higher query limit.
      * @param reposToIgnore A list of repositories of this organization which should be ignored.
-     * @throws IOException
+     * @throws IOException Thrown if an error appears while reading the repositories from Github.
      */
     public GitHubAPIHandler(String organization, String authToken, List<String> reposToIgnore) throws IOException {
         GitHub github = GitHub.connectUsingOAuth(authToken);

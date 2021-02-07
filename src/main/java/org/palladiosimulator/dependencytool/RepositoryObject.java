@@ -75,11 +75,9 @@ public class RepositoryObject {
      * @param handler A GitHubAPIHandler to gain access to the information of the existing repository.
      * @param includeImports If true the dependencies of this repository will also contain imported plugins and features.
      * @param includeOptionals If true the dependencies of this repository will also contain optional plugins.
-     * @throws IOException
-     * @throws ParserConfigurationException
-     * @throws SAXException
+     * @throws IOException If an error happens while reading the repository.
      */
-    public RepositoryObject(String repositoryName, GitHubAPIHandler handler, boolean includeImports, boolean includeOptionals) throws IOException, ParserConfigurationException, SAXException {
+    public RepositoryObject(String repositoryName, GitHubAPIHandler handler, boolean includeImports, boolean includeOptionals) throws IOException {
         this.repositoryName = repositoryName;
         this.updateSite = PalladioConstants.UPDATESITE + repositoryName.toLowerCase() + "/";
         this.handler = handler;
@@ -104,7 +102,7 @@ public class RepositoryObject {
         this.dependencies.addAll(dependencies);
     }
     
-    private void calculateRequired(Boolean includeImports, boolean includeOptionals) throws IOException, ParserConfigurationException, SAXException {
+    private void calculateRequired(Boolean includeImports, boolean includeOptionals) throws IOException {
         // get required bundles from all bundle Manifest.MF
         ManifestHandler mfHandler = new ManifestHandler(repositoryName, handler.getBundles(repositoryName));
         requiredBundles.addAll(mfHandler.getDependencies(includeOptionals));
@@ -117,10 +115,14 @@ public class RepositoryObject {
         for (String featureXML : featureXMLs) {
             Optional<GHContent> featureContent = handler.getContentfromFile(repositoryName, featureXML);
             if (featureContent.isPresent()) {
-                Document featureDoc = getDocumentFromStream(featureContent.get().read());
-                FeatureXML feature = new FeatureXML(featureDoc, includeImports);
-                requiredBundles.addAll(feature.getRequiredBundles());
-                requiredFeatures.addAll(feature.getRequiredFeatures());
+                try {
+                    Document featureDoc = getDocumentFromStream(featureContent.get().read());
+                    FeatureXML feature = new FeatureXML(featureDoc, includeImports);
+                    requiredBundles.addAll(feature.getRequiredBundles());
+                    requiredFeatures.addAll(feature.getRequiredFeatures());
+                } catch (ParserConfigurationException | SAXException e) {
+                    throw new IOException(e);
+                }
             }    
         }
     }

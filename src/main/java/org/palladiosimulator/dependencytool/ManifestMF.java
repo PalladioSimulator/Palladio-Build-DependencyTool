@@ -27,7 +27,7 @@ public class ManifestMF {
     /**
      * Parses the manifest.mf file for names of bundles specified in require-bundle.
      * 
-     * @param includeOptions
+     * @param includeOptionals
      *            If set to false, optional dependencies will be ignored.
      * @return Names of bundles required in this manifest.mf file.
      */

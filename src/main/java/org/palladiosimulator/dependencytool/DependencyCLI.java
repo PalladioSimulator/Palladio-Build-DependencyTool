@@ -9,15 +9,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import javax.xml.parsers.ParserConfigurationException;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.util.DefaultIndenter;
@@ -35,7 +32,7 @@ public class DependencyCLI {
      * Main method for CLI.
      * 
      * @param args organization and authentication-token are required arguments.
-     * @throws ParseException
+     * @throws ParseException Thrown if an error happens while parsing the given command line.
      */
     public static void main(String[] args) throws ParseException {
         Options options = createOptions();
@@ -84,7 +81,7 @@ public class DependencyCLI {
             List<Set<RepositoryObject>> topology = graphRep.getTopologyHierachy();
             
             createOutput(dependencyOutput, jsonOutput, repositories, topology);
-        } catch (IOException | ParserConfigurationException | SAXException e) {
+        } catch (IOException e) {
             LOGGER.warning("Please make sure you entered the correct organization and authentication token.");
         }
     }
