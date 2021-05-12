@@ -27,30 +27,31 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Command Line Interface for the dependency tool.
  */
 public class DependencyCLI {
-    
+
     private static final Logger LOGGER = Logger.getLogger(DependencyCLI.class.getName());
-    
+
     /**
      * Main method for CLI.
-     * 
+     *
      * @param args organization and authentication-token are required arguments.
      * @throws ParseException
      */
     public static void main(String[] args) throws ParseException {
-        
+
         Options options = createOptions();
-        
+
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = parser.parse(options, args);
-        
+
         String org = cmd.getOptionValue("o");
         String token = cmd.getOptionValue("at");
         boolean includeImports = cmd.hasOption("ii");
         boolean jsonOutput = cmd.hasOption("json");
         boolean dependencyOutput = cmd.hasOption("do");
+        boolean neo4jOutput = cmd.hasOption("neo4j");
         UpdateSiteTypes updateSiteType = UpdateSiteTypes.NIGHTLY;
         List<String> reposToIgnore = new ArrayList<>();
-        
+
         if (cmd.hasOption("ur")) {
             updateSiteType = UpdateSiteTypes.RELEASE;
         }
@@ -67,7 +68,7 @@ public class DependencyCLI {
                 LOGGER.warning("Something went wrong while opening the file, please make sure the path is correct.");
             }
         }
-        
+
         try {
             GitHubAPIHandler apiHandler = new GitHubAPIHandler(org, token, reposToIgnore);
             DependencyCalculator dc = new DependencyCalculator(apiHandler, updateSiteType);
@@ -75,13 +76,21 @@ public class DependencyCLI {
             GraphicalRepresentation graphRep = new GraphicalRepresentation(repositories);
             graphRep.createTopologyHierarchy();
             List<Set<RepositoryObject>> topology = graphRep.getTopologyHierachy();
-            
+
             createOutput(dependencyOutput, jsonOutput, repositories, topology);
+            createNeo4jOutput(neo4jOutput, repositories);
         } catch (IOException | ParserConfigurationException | SAXException e) {
             LOGGER.warning("Please make sure you entered the correct organization and authentication token.");
         }
     }
-    
+
+    private static void createNeo4jOutput(boolean neo4jOutput, Set<RepositoryObject> repositories) {
+        EmbeddedNeo4j neo4j = new EmbeddedNeo4j();
+        neo4j.commit(repositories);
+        neo4j.shutDown();
+
+    }
+
     private static Options createOptions() {
         Options options = new Options();
         options.addRequiredOption("o", "organization", true, "An existing GitHub organization.")
@@ -91,10 +100,12 @@ public class DependencyCLI {
         .addOption("json", "json-output", false, "Use more informational json output.")
         .addOption("do", "dependency-output", false, "Use dependencies per repo output")
         .addOption("ri", "repository-ignore", true, "Specify one or more repositories which should be ignored when calculating dependencies. Split by an underscore.")
-        .addOption("rif", "repository-ignore-file", true , "Path to file with repositories to ignore. Each repository name must be in a new line.");
+        .addOption("rif", "repository-ignore-file", true , "Path to file with repositories to ignore. Each repository name must be in a new line.")
+        .addOption("neo4j", "create-neo4j-database", false, "Adding the graph representation to a Neo4j graph database.");
         return options;
     }
-    
+
+
     private static void createOutput(boolean dependencyOutput, boolean jsonOutput, Set<RepositoryObject> repositories, List<Set<RepositoryObject>> topology) throws JsonProcessingException {
         if (dependencyOutput && jsonOutput) {
             ObjectMapper objectMapper = new ObjectMapper();
@@ -103,12 +114,12 @@ public class DependencyCLI {
             }
         } else if (dependencyOutput) {
             for (RepositoryObject repo : repositories) {
-                String dependencyString = "";
-                dependencyString += "Name: " + repo.getRepositoryName() + "\n";
-                dependencyString += "Adress: " + repo.getRepositoryAdress() + "\n";
-                dependencyString += "UpdateSite: " + repo.getUpdateSite() + "\n";
-                dependencyString += "Dependencies: " + repo.getDependencies() + "\n";
-                System.out.println(dependencyString);
+                StringBuilder dependencyString = new StringBuilder();
+                dependencyString.append("Name: ").append(repo.getRepositoryName()).append("\n");
+                dependencyString.append("Adress: ").append(repo.getRepositoryAdress()).append("\n");
+                dependencyString.append("UpdateSite: ").append(repo.getUpdateSite()).append("\n");
+                dependencyString.append("Dependencies: ").append(repo.getDependencies()).append("\n");
+                System.out.println(dependencyString.toString());
             }
         } else if (jsonOutput) {
             ObjectMapper objectMapper = new ObjectMapper();
