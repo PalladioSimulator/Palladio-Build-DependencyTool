@@ -85,10 +85,13 @@ public class DependencyCLI {
     }
 
     private static void createNeo4jOutput(boolean neo4jOutput, Set<RepositoryObject> repositories) {
-        EmbeddedNeo4j neo4j = new EmbeddedNeo4j();
-        neo4j.commit(repositories);
-        neo4j.shutDown();
-
+        if (neo4jOutput) {
+            try (EmbeddedNeo4j neo4j = new EmbeddedNeo4j()) {
+                neo4j.commit(repositories);
+            } catch (Exception e) {
+                LOGGER.warning(e.getMessage());
+            }
+        }
     }
 
     private static Options createOptions() {
