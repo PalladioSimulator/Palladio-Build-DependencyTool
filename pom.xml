@@ -140,8 +140,8 @@
                   overwrite="true">
                   <fileset dir="${project.build.directory}"
                     includes="*.jar" />
-                  <regexpmapper from="dependencytool-(.*)\.jar"
-                    to="dependencytool-\2" />
+                  <regexpmapper from="^dependencytool-(.*)[^javadoc](\.jar)$"
+                    to="dependencytool.jar" />
                 </move>
                 <move todir="${project.build.directory}\deploy\javadoc"
                   verbose="true"
