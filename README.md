@@ -1,8 +1,8 @@
 # Palladio-Build-DependencyTool
-Tool to analyze the dependencies of Palladio project for the [build process](https://build.palladio-simulator.com/).
+Tool to analyze the dependencies of [Palladio projects](https://www.palladio-simulator.com/) for the [build process](https://build.palladio-simulator.com/).
 
 ## Maven
-By means of the instruction `mvn clean package`, the tool can be packed into an [uber jar](https://maven.apache.org/plugins/maven-shade-plugin/), including its dependencies. This jar can be found in at `.\target\deploy\dependencytool.jar` after successful compilation.
+By means of the instruction `mvn clean package`, the tool can be packed into an [uber jar](https://maven.apache.org/plugins/maven-shade-plugin/), including its dependencies. This jar can be found in at `./target/deploy/dependencytool.jar` after successful compilation.
 
 ## CLI Options
 * Required options: `-o`, `-at`
@@ -19,16 +19,16 @@ By means of the instruction `mvn clean package`, the tool can be packed into an 
     * `-ur`, `--use-release`, Use release update site instead of nightly.
 
 ## Neo4j
-By means of the `-neo4j` flag, the detected dependencies are written into a [Neo4j database](https://neo4j.com/). The root directory of this database is relative to the archive in the `.\neo4j` folder. To avoid inconsistencies and unexpected side effects, it is recommended to delete this directory before each tool execution. The command [`docker run -d -p7474:7474 -p7687:7687 -v $PWD/neo4j/data:/data -v $PWD/neo4j/logs:/logs neo4j`](https://neo4j.com/developer/docker/) can be used to mount this directory into a running Neo4j database instance. This instance can be accessed via [`localhost:7474`](http://localhost:7474/). The running instance can be accessed with the [native user and default password](https://neo4j.com/docs/operations-manual/current/configuration/set-initial-password/).
+By means of the `-neo4j` flag, the detected dependencies are written into a [Neo4j database](https://neo4j.com/). The root directory of this database is relative to the archive in the `./neo4j` folder. To avoid inconsistencies and unexpected side effects, it is recommended to delete this directory before each tool execution. The command [`docker run -d -p7474:7474 -p7687:7687 -v $PWD/neo4j/data:/data -v $PWD/neo4j/logs:/logs neo4j`](https://neo4j.com/developer/docker/) can be used to mount this directory into a running Neo4j database instance. This running instance can be retrieved via [`localhost:7474`](http://localhost:7474/) and can be accessed with the [native user and default password](https://neo4j.com/docs/operations-manual/current/configuration/set-initial-password/).
 
 ## Sample Interaction
-The `<access-token>` parameter must be replaced by a [personal access token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token), because the tool loads the required data via the [GitHub API](https://docs.github.com/en/rest).
+The `<access-token>` parameter must be replaced by a [personal access token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token), since this tool loads the required data via the [GitHub API](https://docs.github.com/en/rest).
 ```bash
 git clone git@github.com:PalladioSimulator/Palladio-Build-DependencyTool.git
-cd .\Palladio-Build-DependencyTool\
+cd ./Palladio-Build-DependencyTool/
 mvn clean package
-cd .\target\deploy\
-java -jar .\dependencytool.jar -o PalladioSimulator -at <access-token> -ii -neo4j
+cd ./target/deploy/
+java -jar ./dependencytool.jar -o PalladioSimulator -at <access-token> -ii -neo4j
 docker run -d -p7474:7474 -p7687:7687 -v $PWD/neo4j/data:/data -v $PWD/neo4j/logs:/logs neo4j
 firefox localhost:7474
 ```
