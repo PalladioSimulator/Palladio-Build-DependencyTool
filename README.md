@@ -30,7 +30,7 @@ git clone git@github.com:PalladioSimulator/Palladio-Build-DependencyTool.git
 cd ./Palladio-Build-DependencyTool/
 mvn clean package
 cd ./target/deploy/
-java -jar ./dependencytool.jar -ii -json -do -o PalladioSimulator -at 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 -ri Palladio-Build-UpdateSite
+java -jar ./dependencytool.jar -ii -json -do -o PalladioSimulator -at <access-token> -ri Palladio-Build-UpdateSite
 ```
 
 ### Neo4j Interaction
