@@ -14,7 +14,7 @@ By means of the instruction `mvn clean package`, the tool can be packed into an 
     * `-ii`, `--include-imports`, Consider feature.xml includes while calculating dependencies.
     * `-json`, `--json-output`, Use more informational json output.
     * `-neo4j`, `--create-neo4j-database`, Adding the graph representation to a Neo4j graph database.
-    * `-ri`, `--repository-ignore <arg>`, Specify one or more repositories which should be ignored when calculating dependencies. Split by an underscore.
+    * `-ri`, `--repository-ignore <arg>`, Specify one or more repositories which should be ignored when calculating dependencies. Split by one comma.
     * `-rif`, `--repository-ignore-file <arg>`, Path to file with repositories to ignore. Each repository name must be in a new line.
     * `-ur`, `--use-release`, Use release update site instead of nightly.
 
@@ -23,6 +23,17 @@ By means of the `-neo4j` flag, the detected dependencies are written into a [Neo
 
 ## Sample Interaction
 The `<access-token>` parameter must be replaced by a [personal access token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token), since this tool loads the required data via the [GitHub API](https://docs.github.com/en/rest).
+
+### JSON Interaction
+```bash
+git clone git@github.com:PalladioSimulator/Palladio-Build-DependencyTool.git
+cd ./Palladio-Build-DependencyTool/
+mvn clean package
+cd ./target/deploy/
+java -jar ./dependencytool.jar -ii -json -do -o PalladioSimulator -at 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 -ri Palladio-Build-UpdateSite
+```
+
+### Neo4j Interaction
 ```bash
 git clone git@github.com:PalladioSimulator/Palladio-Build-DependencyTool.git
 cd ./Palladio-Build-DependencyTool/
