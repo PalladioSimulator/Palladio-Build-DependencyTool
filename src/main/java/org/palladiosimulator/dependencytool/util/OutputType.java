@@ -2,5 +2,6 @@ package org.palladiosimulator.dependencytool.util;
 
 public enum OutputType {
     TOPOLOGY,
-    DEPENDENCIES
+    DEPENDENCIES,
+    NEO4J
 }
