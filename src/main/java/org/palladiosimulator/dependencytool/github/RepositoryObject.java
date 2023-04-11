@@ -11,6 +11,10 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.kohsuke.github.GHContent;
+import org.palladiosimulator.dependencytool.dependencies.FeatureXML;
+import org.palladiosimulator.dependencytool.dependencies.ManifestHandler;
+import org.palladiosimulator.dependencytool.github.GitHubAPIHandler;
+import org.palladiosimulator.dependencytool.util.Views;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -22,11 +26,11 @@ import com.fasterxml.jackson.annotation.JsonView;
 /**
  * An object holding all relevant information about the according repository.
  */
-@JsonPropertyOrder({"name", "adress", "updatesite", "dependencies"})
+@JsonPropertyOrder({"name", "address", "updatesite", "dependencies"})
 public class RepositoryObject {
 
     private final String repositoryName;
-    private final String repositoryAdress;
+    private final String repositoryAddress;
     private final String updateSite;
     private Set<String> requiredBundles;
     private Set<String> requiredFeatures;
@@ -38,9 +42,9 @@ public class RepositoryObject {
         return repositoryName;
     }
 
-    @JsonGetter("adress")
-    public String getRepositoryAdress() {
-        return repositoryAdress;
+    @JsonGetter("address")
+    public String getRepositoryAddress() {
+        return repositoryAddress;
     }
 
     @JsonGetter("updatesite")
@@ -78,11 +82,11 @@ public class RepositoryObject {
      * @throws ParserConfigurationException
      * @throws SAXException
      */
-    public RepositoryObject(String repositoryName, GitHubAPIHandler handler, boolean includeImports) throws IOException, ParserConfigurationException, SAXException {
+    public RepositoryObject(String repositoryName, String updateSite, GitHubAPIHandler handler, boolean includeImports) throws IOException, ParserConfigurationException, SAXException {
         this.repositoryName = repositoryName;
-        this.updateSite = PalladioConstants.UPDATESITE + repositoryName.toLowerCase() + "/";
+        this.updateSite = updateSite + repositoryName.toLowerCase() + "/";
         this.handler = handler;
-        repositoryAdress = handler.getRepoPath(repositoryName);
+        repositoryAddress = handler.getRepoPath(repositoryName);
         requiredBundles = new HashSet<>();
         requiredFeatures = new HashSet<>();
         dependencies = new HashSet<>();
@@ -95,11 +99,11 @@ public class RepositoryObject {
     }
 
     /**
-     * Adds dependencies to the repository.
+     * Registers dependencies to this repository.
      * 
      * @param dependencies A set of RepositoryObject to add to this repository as dependencies.
      */
-    public void setDependencies(Set<RepositoryObject> dependencies) {
+    public void addDependencies(Set<RepositoryObject> dependencies) {
         this.dependencies.addAll(dependencies);
     }
     
