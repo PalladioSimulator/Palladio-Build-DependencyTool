@@ -11,7 +11,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.junit.jupiter.api.Test;
-import org.palladiosimulator.dependencytool.FeatureXML;
+import org.palladiosimulator.dependencytool.dependencies.FeatureXML;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 

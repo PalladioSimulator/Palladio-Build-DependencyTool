@@ -1,4 +1,4 @@
-package org.palladiosimulator.dependencytool;
+package org.palladiosimulator.dependencytool.dependencies;
 
 import java.io.IOException;
 import java.io.InputStream;

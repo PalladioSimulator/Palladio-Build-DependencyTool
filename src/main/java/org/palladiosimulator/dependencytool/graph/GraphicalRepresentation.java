@@ -1,4 +1,4 @@
-package org.palladiosimulator.dependencytool;
+package org.palladiosimulator.dependencytool.graph;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -12,6 +12,7 @@ import org.jgrapht.alg.cycle.CycleDetector;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.DirectedAcyclicGraph;
 import org.jgrapht.graph.SimpleDirectedGraph;
+import org.palladiosimulator.dependencytool.github.RepositoryObject;
 
 /**
  * Holds a graph object constructed out of dependencies given in repository Objects.

@@ -1,4 +1,4 @@
-package org.palladiosimulator.dependencytool;
+package org.palladiosimulator.dependencytool.graph;
 
 import org.jgrapht.graph.DefaultEdge;
 

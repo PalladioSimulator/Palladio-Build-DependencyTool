@@ -1,4 +1,4 @@
-package org.palladiosimulator.dependencytool;
+package org.palladiosimulator.dependencytool.util;
 
 /**
  * Needed to use ObjectWriter.withView
