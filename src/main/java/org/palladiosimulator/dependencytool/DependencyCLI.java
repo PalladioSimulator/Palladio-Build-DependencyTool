@@ -61,6 +61,7 @@ public final class DependencyCLI {
         final boolean includeImports = cmd.hasOption("ii");
         final boolean jsonOutput = cmd.hasOption("json");
         final boolean neo4jOutput = cmd.hasOption("neo4j");
+        final boolean includeArchived = cmd.hasOption("ia");
         UpdateSiteTypes updateSiteType = UpdateSiteTypes.NIGHTLY;
         final List<String> reposToIgnore = new ArrayList<>();
 
@@ -88,7 +89,7 @@ public final class DependencyCLI {
         final OutputType outputType = OutputType.valueOf(cmd.getOptionValue("o").toUpperCase());
 
         try {
-            Set<RepositoryObject> repos = repositoriesFromArgs(cmd.getArgList(), GitHub.connectUsingOAuth(githubOAuthToken), updateSiteUrl, includeImports, reposToIgnore);
+            Set<RepositoryObject> repos = repositoriesFromArgs(cmd.getArgList(), GitHub.connectUsingOAuth(githubOAuthToken), updateSiteUrl, includeImports, reposToIgnore, includeArchived);
             final DependencyCalculator dc = new DependencyCalculator(repos, updateSiteUrl, updateSiteType);
             final Set<RepositoryObject> repositories = dc.calculateDependencies(includeImports);
             final GraphicalRepresentation graphRep = new GraphicalRepresentation(repositories);
@@ -117,6 +118,7 @@ public final class DependencyCLI {
                 .addOption("ri", "repository-ignore", true, "Specify one or more repositories which should be ignored when calculating dependencies. Split by an underscore.")
                 .addOption("rif", "repository-ignore-file", true, "Path to file with repositories to ignore. Each repository name must be in a new line.")
                 .addOption("neo4j", "create-neo4j-database", false, "Adds the graph representation to a Neo4j graph database.");
+                .addOption("ia", "include-archived", false, "Include archived repositories into the dependency calculation.");
 
         return options;
     }
@@ -171,7 +173,7 @@ public final class DependencyCLI {
         new HelpFormatter().printHelp("java -jar dependencytool.jar [flags] [<org> <user/repo> ...]", options);
     }
 
-    private static Set<RepositoryObject> repositoriesFromArgs(final List<String> args, final GitHub github, final String updateSiteUrl, final boolean includeImports, final List<String> reposToIgnore) throws IOException {
+    private static Set<RepositoryObject> repositoriesFromArgs(final List<String> args, final GitHub github, final String updateSiteUrl, final boolean includeImports, final List<String> reposToIgnore, final boolean includeArchived) throws IOException {
         final HashSet<GHRepository> githubRepos = new HashSet<>();
         for (String repoOrOrganization : args) {
             final boolean isOrganization = !repoOrOrganization.contains("/");
@@ -184,6 +186,7 @@ public final class DependencyCLI {
         return githubRepos
                 .parallelStream()  // Creating RepositoryObjects calls to GitHub, use parallel requests.
                 .filter(e -> !reposToIgnore.contains(e.getName()) && !reposToIgnore.contains(e.getFullName()))
+                .filter(e -> includeArchived || !e.isArchived())
                 .map(e -> {
                     try {
                         return new RepositoryObject(e, updateSiteUrl, includeImports);
