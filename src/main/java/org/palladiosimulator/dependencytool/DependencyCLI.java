@@ -96,9 +96,7 @@ public final class DependencyCLI {
             graphRep.createTopologyHierarchy();
             final List<Set<RepositoryObject>> topology = graphRep.getTopologyHierachy();
 
-            createJsonOutput(outputType, jsonOutput, repositories, topology);
-            if (neo4jOutput)
-                createNeo4jOutput(repositories);
+            createOutput(outputType, jsonOutput, repositories, topology);
         } catch (IOException | ParserConfigurationException | SAXException e) {
             LOGGER.warning("Please make sure you entered the correct organization and authentication token. "
                     + e.getMessage());
@@ -117,16 +115,22 @@ public final class DependencyCLI {
                 .addOption("j", "json", false, "Format the output as json.")
                 .addOption("ri", "repository-ignore", true, "Specify one or more repositories which should be ignored when calculating dependencies. Split by an underscore.")
                 .addOption("rif", "repository-ignore-file", true, "Path to file with repositories to ignore. Each repository name must be in a new line.")
-                .addOption("neo4j", "create-neo4j-database", false, "Adds the graph representation to a Neo4j graph database.");
                 .addOption("ia", "include-archived", false, "Include archived repositories into the dependency calculation.");
 
         return options;
     }
 
-    private static void createJsonOutput(OutputType outputType, boolean jsonOutput,
+    private static void createOutput(OutputType outputType, boolean jsonOutput,
             Set<RepositoryObject> repositories, List<Set<RepositoryObject>> topology) throws JsonProcessingException {
 
         switch (outputType) {
+            case NEO4J -> {
+                try (EmbeddedNeo4j neo4j = new EmbeddedNeo4j()) {
+                    neo4j.commit(repositories);
+                } catch (final Exception e) {
+                    LOGGER.warning(e.getMessage());
+                }
+            }
             case TOPOLOGY -> {
                 if (jsonOutput) {
                     final ObjectMapper objectMapper = new ObjectMapper();
@@ -158,14 +162,6 @@ public final class DependencyCLI {
                 }
             }
             default -> throw new IllegalArgumentException("Unknown output type: " + outputType);
-        }
-    }
-
-    private static void createNeo4jOutput(Set<RepositoryObject> repositories) {
-        try (EmbeddedNeo4j neo4j = new EmbeddedNeo4j()) {
-            neo4j.commit(repositories);
-        } catch (final Exception e) {
-            LOGGER.warning(e.getMessage());
         }
     }
 
