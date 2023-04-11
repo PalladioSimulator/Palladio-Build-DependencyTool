@@ -1,7 +1,7 @@
 /*
  * Copyright 2021 Yves R. Kirschner
  */
-package org.palladiosimulator.dependencytool;
+package org.palladiosimulator.dependencytool.neo4j;
 
 import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
 
@@ -22,6 +22,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.io.fs.FileUtils;
+import org.palladiosimulator.dependencytool.github.RepositoryObject;
 
 /**
  * The Class EmbeddedNeo4j. An object that hold a Neo4j resource until it is

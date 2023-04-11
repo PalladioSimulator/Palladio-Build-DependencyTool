@@ -1,4 +1,6 @@
-package org.palladiosimulator.dependencytool;
+package org.palladiosimulator.dependencytool.dependencies;
+
+import org.palladiosimulator.dependencytool.util.HttpGetReader;
 
 import java.io.IOException;
 import java.net.URI;

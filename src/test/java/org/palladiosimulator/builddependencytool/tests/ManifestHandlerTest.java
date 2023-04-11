@@ -12,8 +12,8 @@ import java.util.Set;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.palladiosimulator.dependencytool.HttpGetReader;
-import org.palladiosimulator.dependencytool.ManifestHandler;
+import org.palladiosimulator.dependencytool.util.HttpGetReader;
+import org.palladiosimulator.dependencytool.dependencies.ManifestHandler;
 
 public class ManifestHandlerTest {
     

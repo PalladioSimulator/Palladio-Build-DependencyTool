@@ -7,7 +7,7 @@ import java.net.URL;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
-import org.palladiosimulator.dependencytool.ManifestMF;
+import org.palladiosimulator.dependencytool.dependencies.ManifestMF;
 
 public class ManifestMFTest {
 

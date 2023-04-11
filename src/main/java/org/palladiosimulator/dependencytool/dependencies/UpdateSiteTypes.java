@@ -1,4 +1,4 @@
-package org.palladiosimulator.dependencytool;
+package org.palladiosimulator.dependencytool.dependencies;
 
 public enum UpdateSiteTypes {
     NIGHTLY, RELEASE;

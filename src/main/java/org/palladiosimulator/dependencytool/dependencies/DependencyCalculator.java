@@ -1,4 +1,4 @@
-package org.palladiosimulator.dependencytool;
+package org.palladiosimulator.dependencytool.dependencies;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.palladiosimulator.dependencytool.github.RepositoryObject;
 import org.xml.sax.SAXException;
 
 /**
@@ -22,7 +23,7 @@ public class DependencyCalculator {
     private static final Logger LOGGER = Logger.getLogger(DependencyCalculator.class.getName());
     
     private UpdateSiteTypes type;
-    private GitHubAPIHandler ghRepo;
+    private String updateSiteUrl;
     
     private Map<String, RepositoryObject> repositories;
     
@@ -31,15 +32,17 @@ public class DependencyCalculator {
 
     /**
      * Create a new DependencyCalculator object to handle the assignment of dependencies.
-     * 
-     * @param ghRepo The API handler to use.
+     *
      * @param type The type of the update site to analyze. Can be nightly or release.
      * @throws IOException 
      */
-    public DependencyCalculator(GitHubAPIHandler ghRepo, UpdateSiteTypes type) throws IOException {
-        this.ghRepo = ghRepo;
+    public DependencyCalculator(Set<RepositoryObject> repositories, String updateSiteUrl, UpdateSiteTypes type) throws IOException {
+        this.repositories = new HashMap<>();
+        for (RepositoryObject repo : repositories) {
+            this.repositories.put(repo.getRepositoryName(), repo);
+        }
+        this.updateSiteUrl = updateSiteUrl;
         this.type = type;
-        repositories = new HashMap<>();
     }
     
     /**
@@ -52,17 +55,11 @@ public class DependencyCalculator {
      * @throws SAXException
      */
     public Set<RepositoryObject> calculateDependencies(Boolean includeImports) throws IOException, ParserConfigurationException, SAXException {
-        for (String repoName : ghRepo.getRepoNames()) {
-            RepositoryObject repo = new RepositoryObject(repoName, ghRepo, includeImports);
-            repositories.put(repoName, repo);
-        }
         calculateProvided();
         for (Entry<String, RepositoryObject> repo : repositories.entrySet()) {
-            repo.getValue().setDependencies(mapRequirementToRepo(repo.getKey()));
+            repo.getValue().addDependencies(mapRequirementToRepo(repo.getKey()));
         }
-        Set<RepositoryObject> repoSet = new HashSet<>();
-        repoSet.addAll(repositories.values());
-        return repoSet;
+        return new HashSet<>(repositories.values());
     }
     
     
