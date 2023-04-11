@@ -1,3 +1,5 @@
 target/
 neo4j/
 dependency-reduced-pom.xml
+.idea/
+.factorypath
