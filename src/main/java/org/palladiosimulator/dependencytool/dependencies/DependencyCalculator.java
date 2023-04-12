@@ -64,9 +64,10 @@ public class DependencyCalculator {
         ExecutorService ex = Executors.newFixedThreadPool(128);
 
         List<Future<RepositoryObject>> futureRepositories = repositories
-            .parallelStream()  // Creating RepositoryObjects calls to GitHub, use parallel requests.
+            .parallelStream()
             .filter(e -> !reposToIgnore.contains(e.getName()) && !reposToIgnore.contains(e.getFullName()))
             .filter(e -> includeArchived || !e.isArchived())
+            .sequential()
             .map(e -> ex.submit(() -> {
                 try {
                     return new RepositoryObject(e, updateSiteUrl, includeImports);
