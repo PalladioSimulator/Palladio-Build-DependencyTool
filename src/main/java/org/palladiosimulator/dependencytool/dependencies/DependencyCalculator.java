@@ -15,7 +15,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.Set;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -96,14 +95,14 @@ public class DependencyCalculator {
     /**
      * Assign dependencies to the repositories.
      * 
-     * @param includeImports Considers imports in the feature.xml while calculating dependencies if true.
      * @return A Set of RepositoryObjects with their dependencies set in RepositoryObject.getDependency();
      * @throws IOException
      * @throws ParserConfigurationException
      * @throws SAXException
      */
-    public synchronized Set<RepositoryObject> calculateDependencies(Boolean includeImports) throws IOException, ParserConfigurationException, SAXException {
+    public synchronized Set<RepositoryObject> calculateDependencies() throws IOException, ParserConfigurationException, SAXException {
         calculateProvided();
+
         for (Entry<String, RepositoryObject> repo : repositories.entrySet()) {
             repo.getValue().addDependencies(mapRequirementToRepo(repo.getKey()));
         }
@@ -131,8 +130,10 @@ public class DependencyCalculator {
                     providedFeatureMap.put(repo, tmpFeature);
                 }
             }
+
             // remove repositories without an update site
             noUpdateSite.forEach(repositories::remove);
+            LOGGER.warning("No update site found for " + noUpdateSite.toString());
             
             mappingBundleRepository = verifyUnique(providedBundleMap);
             mappingFeatureRepository = verifyUnique(providedFeatureMap);

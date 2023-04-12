@@ -92,8 +92,8 @@ public final class DependencyCLI {
             Set<GHRepository> repos = repositoriesFromArgs(cmd.getArgList(), GitHub.connectUsingOAuth(githubOAuthToken));
             final DependencyCalculator dc = new DependencyCalculator(updateSiteUrl, updateSiteType, includeImports, reposToIgnore, includeArchived);
             dc.addAll(repos);
-            
-            final Set<RepositoryObject> repositories = dc.calculateDependencies(includeImports);
+
+            final Set<RepositoryObject> repositories = dc.calculateDependencies();
             final GraphicalRepresentation graphRep = new GraphicalRepresentation(repositories);
             graphRep.createTopologyHierarchy();
             final List<Set<RepositoryObject>> topology = graphRep.getTopologyHierachy();
