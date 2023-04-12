@@ -1,22 +1,16 @@
 package org.palladiosimulator.dependencytool.github;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
-import java.util.logging.Logger;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.kohsuke.github.GHContent;
 import org.kohsuke.github.GHRepository;
-import org.palladiosimulator.dependencytool.dependencies.FeatureXML;
-import org.palladiosimulator.dependencytool.dependencies.ManifestHandler;
+import org.palladiosimulator.dependencytool.dependencies.FeatureXMLHandler;
+import org.palladiosimulator.dependencytool.dependencies.ManifestMFDependencyHandler;
 import org.palladiosimulator.dependencytool.util.Views;
-import org.w3c.dom.Document;
+    
 import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
@@ -29,8 +23,6 @@ import com.fasterxml.jackson.annotation.JsonView;
  */
 @JsonPropertyOrder({"name", "address", "updatesite", "dependencies"})
 public class RepositoryObject {
-
-    private static final Logger LOGGER = Logger.getLogger(RepositoryObject.class.getName());
 
     private final String repositoryName;
     private final String repositoryAddress;
@@ -87,12 +79,13 @@ public class RepositoryObject {
      */
     public RepositoryObject(GHRepository repository, String updateSite, boolean includeImports) throws IOException, ParserConfigurationException, SAXException {
         this.repository = repository;
-        this.repositoryName = repository.getName();
-        this.updateSite = updateSite + repositoryName.toLowerCase() + "/";
+        this.repositoryName = repository.getFullName();
+        this.updateSite = updateSite + repository.getName().toLowerCase() + "/";
         repositoryAddress = repository.getHtmlUrl().toString();
         requiredBundles = new HashSet<>();
         requiredFeatures = new HashSet<>();
         dependencies = new HashSet<>();
+
         calculateRequired(includeImports);
     }
     
@@ -110,73 +103,13 @@ public class RepositoryObject {
         this.dependencies.addAll(dependencies);
     }
 
-    // Returns a set of strings, containing all names of bundles present for the given repository name.
-    private Set<String> getBundles() {
-        Set<String> bundles = new HashSet<>();
-        try {
-            for (GHContent bundle : repository.getDirectoryContent("bundles")) {
-                if (bundle.isDirectory()) {
-                    bundles.add(bundle.getName());
-                }
-            }
-        } catch (IOException e) {
-            LOGGER.warning("No bundles page found for " + repositoryName + ".");
-        }
-        return bundles;
-    }
-
-    // Returns a set of strings, containing all names of features present for the given repository name.
-    private Set<String> getFeatures() {
-        Set<String> features = new HashSet<>();
-        try {
-            for (GHContent feature : repository.getDirectoryContent("features")) {
-                if (feature.isDirectory()) {
-                    features.add(feature.getName());
-                }
-            }
-        } catch (IOException e) {
-            LOGGER.warning("No features page found for " + repositoryName + ".");
-        }
-        return features;
-    }
-
-    private void calculateRequired(Boolean includeImports) throws IOException, ParserConfigurationException, SAXException {
+    private void calculateRequired(boolean includeImports) throws IOException, ParserConfigurationException, SAXException {
         // get required bundles from all bundle Manifest.MF
-        ManifestHandler mfHandler = new ManifestHandler(repositoryName, getBundles());
-        requiredBundles.addAll(mfHandler.getDependencies());
+        ManifestMFDependencyHandler manifestMfHandler = new ManifestMFDependencyHandler(repository);
+        requiredBundles.addAll(manifestMfHandler.getRequiredBundles());
 
-        // get required bundles and features from all Feature.xml
-        Set<String> featureXMLs = new HashSet<>();
-        for (String feature : getFeatures()) {
-            featureXMLs.add("/features/" + feature + "/feature.xml");
-        }
-        for (String featureXML : featureXMLs) {
-            Optional<GHContent> featureContent = getFileContent(featureXML);
-            if (featureContent.isPresent()) {
-                Document featureDoc = getDocumentFromStream(featureContent.get().read());
-                FeatureXML feature = new FeatureXML(featureDoc, includeImports);
-                requiredBundles.addAll(feature.getRequiredBundles());
-                requiredFeatures.addAll(feature.getRequiredFeatures());
-            }
-        }
-    }
-    
-    private Document getDocumentFromStream(InputStream content) throws IOException, ParserConfigurationException, SAXException {
-        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-        Document document = dBuilder.parse(content);
-        document.getDocumentElement().normalize();
-        return document;
-    }
-
-    // Fetches file content from a given file in a given repository.
-    private Optional<GHContent> getFileContent(String filePath) {
-        Optional<GHContent> content = Optional.empty();
-        try {
-            content = Optional.of(repository.getFileContent(filePath));
-        } catch (IOException e) {
-            LOGGER.warning("No file found for " + filePath + " in " + repository.getFullName() + ".");
-        }
-        return content;
+        FeatureXMLHandler featureXMLHandler = new FeatureXMLHandler(repository, includeImports);
+        requiredBundles.addAll(featureXMLHandler.getRequiredBundles());
+        requiredFeatures.addAll(featureXMLHandler.getRequiredFeatures());
     }
 }
