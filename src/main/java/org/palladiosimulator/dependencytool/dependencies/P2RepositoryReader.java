@@ -22,9 +22,11 @@ import aQute.p2.provider.P2Impl;
 public class P2RepositoryReader implements Closeable {
     
     private final ExecutorService executor;
+    private final PromiseFactory promiseFactory;
 
     public P2RepositoryReader() {
-        executor = Executors.newFixedThreadPool(4);
+        executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        promiseFactory = new PromiseFactory(executor);
     }
 
     /**
@@ -38,7 +40,7 @@ public class P2RepositoryReader implements Closeable {
         URI repoURI = URI.create(path);
         Set<String> features = new HashSet<>();
         try (HttpClient client = new HttpClient()) {
-            P2Impl p2 = new P2Impl(new Unpack200(), client, repoURI, new PromiseFactory(executor));
+            P2Impl p2 = new P2Impl(new Unpack200(), client, repoURI, promiseFactory);
             Collection<Artifact> artifacts = p2.getFeatures();
             artifacts.forEach(a -> features.add(a.id));
         } catch (Exception e) {
@@ -58,7 +60,7 @@ public class P2RepositoryReader implements Closeable {
         URI repoURI = URI.create(path);
         Set<String> bundles = new HashSet<>();
         try (HttpClient client = new HttpClient()) {
-            P2Impl p2 = new P2Impl(new Unpack200(), client, repoURI, new PromiseFactory(executor));
+            P2Impl p2 = new P2Impl(new Unpack200(), client, repoURI, promiseFactory);
             Collection<Artifact> artifacts = p2.getBundles();
             artifacts.forEach(a -> bundles.add(a.id));
         } catch (Exception e) {
