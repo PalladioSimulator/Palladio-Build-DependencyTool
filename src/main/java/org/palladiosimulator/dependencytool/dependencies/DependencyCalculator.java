@@ -2,16 +2,24 @@ package org.palladiosimulator.dependencytool.dependencies;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.kohsuke.github.GHRepository;
 import org.palladiosimulator.dependencytool.github.RepositoryObject;
 import org.xml.sax.SAXException;
 
@@ -22,8 +30,11 @@ public class DependencyCalculator {
 
     private static final Logger LOGGER = Logger.getLogger(DependencyCalculator.class.getName());
     
-    private UpdateSiteTypes type;
-    private String updateSiteUrl;
+    private final UpdateSiteTypes type;
+    private final String updateSiteUrl;
+    private final boolean includeImports;
+    private final Set<String> reposToIgnore;
+    private final boolean includeArchived;
     
     private Map<String, RepositoryObject> repositories;
     
@@ -36,13 +47,49 @@ public class DependencyCalculator {
      * @param type The type of the update site to analyze. Can be nightly or release.
      * @throws IOException 
      */
-    public DependencyCalculator(Set<RepositoryObject> repositories, String updateSiteUrl, UpdateSiteTypes type) throws IOException {
+    public DependencyCalculator(String updateSiteUrl, UpdateSiteTypes type, final boolean includeImports, final Set<String> reposToIgnore, final boolean includeArchived) throws IOException {
         this.repositories = new HashMap<>();
-        for (RepositoryObject repo : repositories) {
-            this.repositories.put(repo.getRepositoryName(), repo);
-        }
         this.updateSiteUrl = updateSiteUrl;
         this.type = type;
+        this.includeImports = includeImports;
+        this.reposToIgnore = reposToIgnore;
+        this.includeArchived = includeArchived;
+    }
+
+    public void add(GHRepository repository) {
+        addAll(List.of(repository));
+    }
+
+    public synchronized void addAll(Collection<GHRepository> repositories) {
+        ExecutorService ex = Executors.newFixedThreadPool(128);
+
+        List<Future<RepositoryObject>> futureRepositories = repositories
+            .parallelStream()  // Creating RepositoryObjects calls to GitHub, use parallel requests.
+            .filter(e -> !reposToIgnore.contains(e.getName()) && !reposToIgnore.contains(e.getFullName()))
+            .filter(e -> includeArchived || !e.isArchived())
+            .map(e -> ex.submit(() -> {
+                try {
+                    return new RepositoryObject(e, updateSiteUrl, includeImports);
+                } catch (IOException | ParserConfigurationException | SAXException exception) {
+                    throw new RuntimeException(exception);
+                }
+            }))
+            .toList();
+        ex.shutdown();
+        try {
+            ex.awaitTermination(15, TimeUnit.MINUTES);
+        } catch (InterruptedException e1) {
+            LOGGER.warning("Interrupted while waiting for executor termination");
+        }
+
+        for (Future<RepositoryObject> future : futureRepositories) {
+            try {
+                RepositoryObject repo = future.get();
+                this.repositories.put(repo.getRepositoryName(), repo);
+            } catch (InterruptedException | ExecutionException e1) {
+                LOGGER.warning("Exception while waiting for future to complete");
+            }
+        }
     }
     
     /**
@@ -54,7 +101,7 @@ public class DependencyCalculator {
      * @throws ParserConfigurationException
      * @throws SAXException
      */
-    public Set<RepositoryObject> calculateDependencies(Boolean includeImports) throws IOException, ParserConfigurationException, SAXException {
+    public synchronized Set<RepositoryObject> calculateDependencies(Boolean includeImports) throws IOException, ParserConfigurationException, SAXException {
         calculateProvided();
         for (Entry<String, RepositoryObject> repo : repositories.entrySet()) {
             repo.getValue().addDependencies(mapRequirementToRepo(repo.getKey()));

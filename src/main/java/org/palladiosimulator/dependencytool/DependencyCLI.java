@@ -63,7 +63,7 @@ public final class DependencyCLI {
         final boolean neo4jOutput = cmd.hasOption("neo4j");
         final boolean includeArchived = cmd.hasOption("ia");
         UpdateSiteTypes updateSiteType = UpdateSiteTypes.NIGHTLY;
-        final List<String> reposToIgnore = new ArrayList<>();
+        final Set<String> reposToIgnore = new HashSet<>();
 
         if (cmd.hasOption("help")) {
             printHelp(options);
@@ -89,8 +89,10 @@ public final class DependencyCLI {
         final OutputType outputType = OutputType.valueOf(cmd.getOptionValue("o").toUpperCase());
 
         try {
-            Set<RepositoryObject> repos = repositoriesFromArgs(cmd.getArgList(), GitHub.connectUsingOAuth(githubOAuthToken), updateSiteUrl, includeImports, reposToIgnore, includeArchived);
-            final DependencyCalculator dc = new DependencyCalculator(repos, updateSiteUrl, updateSiteType);
+            Set<GHRepository> repos = repositoriesFromArgs(cmd.getArgList(), GitHub.connectUsingOAuth(githubOAuthToken));
+            final DependencyCalculator dc = new DependencyCalculator(updateSiteUrl, updateSiteType, includeImports, reposToIgnore, includeArchived);
+            dc.addAll(repos);
+            
             final Set<RepositoryObject> repositories = dc.calculateDependencies(includeImports);
             final GraphicalRepresentation graphRep = new GraphicalRepresentation(repositories);
             graphRep.createTopologyHierarchy();
@@ -169,7 +171,7 @@ public final class DependencyCLI {
         new HelpFormatter().printHelp("java -jar dependencytool.jar [flags] [<org> <user/repo> ...]", options);
     }
 
-    private static Set<RepositoryObject> repositoriesFromArgs(final List<String> args, final GitHub github, final String updateSiteUrl, final boolean includeImports, final List<String> reposToIgnore, final boolean includeArchived) throws IOException {
+    private static Set<GHRepository> repositoriesFromArgs(final List<String> args, final GitHub github) throws IOException {
         final HashSet<GHRepository> githubRepos = new HashSet<>();
         for (String repoOrOrganization : args) {
             final boolean isOrganization = !repoOrOrganization.contains("/");
@@ -179,18 +181,7 @@ public final class DependencyCLI {
                 githubRepos.add(github.getRepository(repoOrOrganization));
             }
         }
-        return githubRepos
-                .parallelStream()  // Creating RepositoryObjects calls to GitHub, use parallel requests.
-                .filter(e -> !reposToIgnore.contains(e.getName()) && !reposToIgnore.contains(e.getFullName()))
-                .filter(e -> includeArchived || !e.isArchived())
-                .map(e -> {
-                    try {
-                        return new RepositoryObject(e, updateSiteUrl, includeImports);
-                    } catch (IOException | ParserConfigurationException | SAXException ex) {
-                        throw new RuntimeException(ex);
-                    }
-                })
-                .collect(Collectors.toSet());
+        return githubRepos;
     }
 
     /**
