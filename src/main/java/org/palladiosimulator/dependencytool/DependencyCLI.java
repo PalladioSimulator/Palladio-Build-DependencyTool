@@ -5,7 +5,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -60,7 +59,6 @@ public final class DependencyCLI {
         final String updateSiteUrl = cmd.getOptionValue("us");
         final boolean includeImports = cmd.hasOption("ii");
         final boolean jsonOutput = cmd.hasOption("json");
-        final boolean neo4jOutput = cmd.hasOption("neo4j");
         final boolean includeArchived = cmd.hasOption("ia");
         UpdateSiteTypes updateSiteType = UpdateSiteTypes.NIGHTLY;
         final Set<String> reposToIgnore = new HashSet<>();
