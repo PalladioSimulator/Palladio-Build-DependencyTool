@@ -3,6 +3,7 @@ package org.palladiosimulator.dependencytool.graph;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 
@@ -28,19 +29,19 @@ public class GraphicalRepresentation {
     /**
      * Creates a new GraphicalRepresentation object. Creates a new simple directed graph adding all repository names as vertices and all dependencies as edges.
      * 
-     * @param repositories A set containing RepositoryObjects.
+     * @param dependencies A set containing RepositoryObjects.
      */
-    public GraphicalRepresentation(Set<RepositoryObject> repositories) {
+    public GraphicalRepresentation(Map<RepositoryObject, Set<RepositoryObject>> dependencies) {
         graph = new SimpleDirectedGraph<>(CustomEdge.class);
         topologyHierarchy = new ArrayList<>();
         
         // Add all repositories as vertices.
-        repositories.forEach(a -> graph.addVertex(a));
+        dependencies.keySet().forEach(a -> graph.addVertex(a));
         
         // Add an edge from this repository to all repositories it depends on. 
-        for (RepositoryObject repo : repositories) {
-            for (RepositoryObject dependency : repo.getDependency()) {
-                graph.addEdge(repo, dependency);
+        for (Map.Entry<RepositoryObject, Set<RepositoryObject>> repoDependencies : dependencies.entrySet()) {
+            for (RepositoryObject dependency : repoDependencies.getValue()) {
+                graph.addEdge(repoDependencies.getKey(), dependency);
             }
         }
     }

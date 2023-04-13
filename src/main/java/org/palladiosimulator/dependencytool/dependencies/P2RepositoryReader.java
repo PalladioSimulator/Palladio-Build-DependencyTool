@@ -25,7 +25,7 @@ public class P2RepositoryReader implements Closeable {
     private final PromiseFactory promiseFactory;
 
     public P2RepositoryReader() {
-        executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        executor = Executors.newSingleThreadExecutor();
         promiseFactory = new PromiseFactory(executor);
     }
 

@@ -5,8 +5,10 @@ package org.palladiosimulator.dependencytool.util;
  *
  */
 public class Views {
-    public static class Dependency {
+    public static class Repository {
     }
     public static class Topology {
+    }
+    public static class Dependency {
     }
 }
