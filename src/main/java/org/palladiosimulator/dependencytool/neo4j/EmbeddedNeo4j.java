@@ -151,15 +151,15 @@ public class EmbeddedNeo4j implements AutoCloseable {
     /**
      * Commit the given repository object to the Neo4j database instance.
      *
-     * @param repositories the repositories to commit
+     * @param dependencies the repositories to commit
      */
-    public void commit(Set<RepositoryObject> repositories) {
-        for (final RepositoryObject repository : Objects.requireNonNull(repositories,
-                "The list of repositories must not be null.")) {
+    public void commit(Map<RepositoryObject, Set<RepositoryObject>> dependencies) {
+        for (final RepositoryObject repository : Objects.requireNonNull(dependencies,
+                "The list of repositories must not be null.").keySet()) {
 
             this.commitFeature(repository);
             this.commitBundle(repository);
-            this.commitRepository(repository);
+            this.commitRepository(repository, dependencies.get(repository));
         }
     }
 
@@ -171,7 +171,7 @@ public class EmbeddedNeo4j implements AutoCloseable {
     private void commitBundle(final RepositoryObject repository) {
         for (final String bundle : repository.getRequiredBundles()) {
             try (Transaction tx = this.databaseService.beginTx()) {
-                final String repositoryName = repository.getRepositoryName();
+                final String repositoryName = repository.getName();
                 final Node repositoryNode = this.createRepositoryNode(tx, repositoryName);
 
                 final Node bundleNode = this.createBundleNode(tx, bundle);
@@ -192,7 +192,7 @@ public class EmbeddedNeo4j implements AutoCloseable {
     private void commitFeature(final RepositoryObject repository) {
         for (final String feature : repository.getRequiredFeatures()) {
             try (Transaction tx = this.databaseService.beginTx()) {
-                final String repositoryName = repository.getRepositoryName();
+                final String repositoryName = repository.getName();
                 final Node repositoryNode = this.createRepositoryNode(tx, repositoryName);
 
                 final Node featureNode = this.createFeatureNode(tx, feature);
@@ -210,13 +210,13 @@ public class EmbeddedNeo4j implements AutoCloseable {
      *
      * @param repository the repository
      */
-    private void commitRepository(final RepositoryObject repository) {
-        for (final RepositoryObject dependency : repository.getDependency()) {
+    private void commitRepository(final RepositoryObject repository, final Set<RepositoryObject> dependencies) {
+        for (final RepositoryObject dependency : dependencies) {
             try (Transaction tx = this.databaseService.beginTx()) {
-                final String repositoryName = repository.getRepositoryName();
+                final String repositoryName = repository.getName();
                 final Node repositoryNode = this.createRepositoryNode(tx, repositoryName);
 
-                final String dependencyName = dependency.getRepositoryName();
+                final String dependencyName = dependency.getName();
                 final Node dependencyNode = this.createRepositoryNode(tx, dependencyName);
 
                 this.createRelationship(repositoryNode, dependencyNode, Relationships.REPOSITORY);

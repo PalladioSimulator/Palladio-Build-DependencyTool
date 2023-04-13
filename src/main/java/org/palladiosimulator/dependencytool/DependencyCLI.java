@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.logging.Logger;
 
-import javax.xml.parsers.ParserConfigurationException;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -23,12 +21,12 @@ import org.palladiosimulator.dependencytool.graph.GraphicalRepresentation;
 import org.palladiosimulator.dependencytool.neo4j.EmbeddedNeo4j;
 import org.palladiosimulator.dependencytool.util.OutputType;
 import org.palladiosimulator.dependencytool.util.Views;
-import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 
 /**
  * Command Line Interface for the dependency tool.
@@ -60,6 +58,7 @@ public final class DependencyCLI {
         final boolean includeImports = cmd.hasOption("ii");
         final boolean jsonOutput = cmd.hasOption("json");
         final boolean includeArchived = cmd.hasOption("ia");
+        final boolean includeNoUpdateSite = cmd.hasOption("inus");
         UpdateSiteTypes updateSiteType = UpdateSiteTypes.NIGHTLY;
         final Set<String> reposToIgnore = new HashSet<>();
 
@@ -88,16 +87,16 @@ public final class DependencyCLI {
 
         try {
             Set<GHRepository> repos = repositoriesFromArgs(cmd.getArgList(), GitHub.connectUsingOAuth(githubOAuthToken));
-            final DependencyCalculator dc = new DependencyCalculator(updateSiteUrl, updateSiteType, includeImports, reposToIgnore, includeArchived);
+            final DependencyCalculator dc = new DependencyCalculator(updateSiteUrl, updateSiteType, includeImports, reposToIgnore, includeArchived, includeNoUpdateSite);
             dc.addAll(repos);
 
-            final Set<RepositoryObject> repositories = dc.calculateDependencies();
-            final GraphicalRepresentation graphRep = new GraphicalRepresentation(repositories);
+            final Map<RepositoryObject, Set<RepositoryObject>> dependencies = dc.getDependencies();
+            final GraphicalRepresentation graphRep = new GraphicalRepresentation(dependencies);
             graphRep.createTopologyHierarchy();
             final List<Set<RepositoryObject>> topology = graphRep.getTopologyHierachy();
 
-            createOutput(outputType, jsonOutput, repositories, topology);
-        } catch (IOException | ParserConfigurationException | SAXException e) {
+            createOutput(outputType, jsonOutput, dependencies, topology);
+        } catch (IOException e) {
             LOGGER.warning("Please make sure you entered the correct organization and authentication token. "
                     + e.getMessage());
         }
@@ -115,50 +114,76 @@ public final class DependencyCLI {
                 .addOption("j", "json", false, "Format the output as json.")
                 .addOption("ri", "repository-ignore", true, "Specify one or more repositories which should be ignored when calculating dependencies. Split by an underscore.")
                 .addOption("rif", "repository-ignore-file", true, "Path to file with repositories to ignore. Each repository name must be in a new line.")
-                .addOption("ia", "include-archived", false, "Include archived repositories into the dependency calculation.");
+                .addOption("ia", "include-archived", false, "Include archived repositories into the dependency calculation.")
+                .addOption("inus", "include-no-updatesite", false, "Include repositories even if an update site could not be found.");
 
         return options;
     }
 
     private static void createOutput(OutputType outputType, boolean jsonOutput,
-            Set<RepositoryObject> repositories, List<Set<RepositoryObject>> topology) throws JsonProcessingException {
+            Map<RepositoryObject, Set<RepositoryObject>> dependencies, List<Set<RepositoryObject>> topology) throws JsonProcessingException {
+
+        final ObjectMapper objectMapper = new ObjectMapper();
+        final DefaultPrettyPrinter pp = new DefaultPrettyPrinter();
+        final DefaultPrettyPrinter.Indenter indenter = new DefaultIndenter("  ", DefaultIndenter.SYS_LF);
+        pp.indentArraysWith(indenter);
+        pp.indentObjectsWith(indenter);
+        final ObjectWriter objectWriter = objectMapper.writer(pp);
 
         switch (outputType) {
             case NEO4J -> {
                 try (EmbeddedNeo4j neo4j = new EmbeddedNeo4j()) {
-                    neo4j.commit(repositories);
+                    neo4j.commit(dependencies);
                 } catch (final Exception e) {
                     LOGGER.warning(e.getMessage());
                 }
             }
             case TOPOLOGY -> {
                 if (jsonOutput) {
-                    final ObjectMapper objectMapper = new ObjectMapper();
-                    final DefaultPrettyPrinter pp = new DefaultPrettyPrinter();
-                    final DefaultPrettyPrinter.Indenter indenter = new DefaultIndenter("  ", DefaultIndenter.SYS_LF);
-                    pp.indentArraysWith(indenter);
-                    pp.indentObjectsWith(indenter);
-                    System.out.println(objectMapper.writer(pp).withView(Views.Topology.class).writeValueAsString(topology));
+                    System.out.println(objectWriter.withView(Views.Topology.class).writeValueAsString(topology));
                 } else {
                     System.out.println(topology.toString().replaceAll("],", "],\n"));
                 }
             }
-            case DEPENDENCIES -> {
+            case REPOSITORIES -> {
                 if (jsonOutput) {
-                    final ObjectMapper objectMapper = new ObjectMapper();
-                    for (final RepositoryObject repo : repositories) {
-                        System.out.println(objectMapper.writerWithDefaultPrettyPrinter().withView(Views.Dependency.class)
-                                .writeValueAsString(repo));
-                    }
+                    System.out.println(objectWriter.withView(Views.Repository.class).writeValueAsString(dependencies.keySet()));
                 } else {
-                    for (final RepositoryObject repo : repositories) {
-                        final StringBuilder dependencyString = new StringBuilder();
-                        dependencyString.append("Name: ").append(repo.getRepositoryName()).append("\n");
-                        dependencyString.append("Address: ").append(repo.getRepositoryAddress()).append("\n");
-                        dependencyString.append("UpdateSite: ").append(repo.getUpdateSite()).append("\n");
-                        dependencyString.append("Dependencies: ").append(repo.getDependencies()).append("\n");
-                        System.out.println(dependencyString.toString());
+                    final StringBuilder reposString = new StringBuilder();
+                    for (final RepositoryObject repo : dependencies.keySet()) {
+                        reposString.append("Name: ").append(repo.getName()).append("\n");
+                        reposString.append("Address: ").append(repo.getGithubURL()).append("\n");
+                        reposString.append("UpdateSite: ").append(repo.getUpdateSite()).append("\n");
+                        reposString.append("Dependencies: ").append(dependencies.get(repo)).append("\n");
+                        reposString.append("ProvidedFeatures: ").append(repo.getProvidedFeatures()).append("\n");
+                        reposString.append("ProvidedBundles: ").append(repo.getProvidedBundles()).append("\n");
+                        reposString.append("RequiredFeatures: ").append(repo.getRequiredFeatures()).append("\n");
+                        reposString.append("RequiredBundles: ").append(repo.getRequiredBundles()).append("\n");
+                        reposString.append("\n");
                     }
+                    System.out.println(reposString.toString());
+                }
+            }
+            case DEPENDENCIES -> {
+                Map<String, List<String>> stringDependencies = new HashMap<>();
+                for (final Map.Entry<RepositoryObject, Set<RepositoryObject>> entry : dependencies.entrySet()) {
+                    final String repoName = entry.getKey().getName();
+                    final List<String> repoDependencies = entry.getValue().stream().map(RepositoryObject::getName).toList(); 
+                    stringDependencies.put(repoName, repoDependencies);
+                }
+
+                if (jsonOutput) {
+                    System.out.println(objectWriter.withView(Views.Dependency.class).writeValueAsString(stringDependencies));
+                } else {
+                    final StringBuilder dependencyString = new StringBuilder();
+                    for (final Map.Entry<String, List<String>> entry : stringDependencies.entrySet()) {
+                        dependencyString.append(entry.getKey()).append(":").append("\n");
+                        for (String dependency : entry.getValue()) {
+                            dependencyString.append("  ").append(dependency).append("\n");
+                        }
+                        dependencyString.append("\n");
+                    }
+                    System.out.println(dependencyString.toString().trim());
                 }
             }
             default -> throw new IllegalArgumentException("Unknown output type: " + outputType);
