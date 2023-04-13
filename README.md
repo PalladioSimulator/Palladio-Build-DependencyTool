@@ -43,6 +43,7 @@ cd ./Palladio-Build-DependencyTool/
 mvn clean package
 cd ./target/deploy/
 java -jar ./dependencytool.jar -at <access-token> -ii -us "https://updatesite.palladio-simulator.com/" -o NEO4J PalladioSimulator
-docker run -d -p7474:7474 -p7687:7687 -v $PWD/neo4j/data:/data -v $PWD/neo4j/logs:/logs neo4j
-firefox localhost:7474
+# Use the same version as defined in the pom.xml
+docker run --rm -p7474:7474 -p7687:7687 -v $PWD/neo4j/data:/data -v $PWD/neo4j/logs:/logs neo4j:4.4.19
+# Open the browser at localhost:7474 and login using user and passwort `neo4j`
 ```
