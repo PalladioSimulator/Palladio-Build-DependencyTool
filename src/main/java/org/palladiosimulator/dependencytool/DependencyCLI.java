@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -131,21 +132,19 @@ public final class DependencyCLI {
         final ObjectWriter objectWriter = objectMapper.writer(pp);
 
         switch (outputType) {
-            case NEO4J -> {
+            case NEO4J:
                 try (EmbeddedNeo4j neo4j = new EmbeddedNeo4j()) {
                     neo4j.commit(dependencies);
-                } catch (final Exception e) {
-                    LOGGER.warning(e.getMessage());
                 }
-            }
-            case TOPOLOGY -> {
+                break;
+            case TOPOLOGY:
                 if (jsonOutput) {
                     System.out.println(objectWriter.withView(Views.Topology.class).writeValueAsString(topology));
                 } else {
                     System.out.println(topology.toString().replaceAll("],", "],\n"));
                 }
-            }
-            case REPOSITORIES -> {
+                break;
+            case REPOSITORIES:
                 if (jsonOutput) {
                     System.out.println(objectWriter.withView(Views.Repository.class).writeValueAsString(dependencies.keySet()));
                 } else {
@@ -163,12 +162,12 @@ public final class DependencyCLI {
                     }
                     System.out.println(reposString.toString());
                 }
-            }
-            case DEPENDENCIES -> {
+                break;
+            case DEPENDENCIES:
                 Map<String, List<String>> stringDependencies = new HashMap<>();
                 for (final Map.Entry<RepositoryObject, Set<RepositoryObject>> entry : dependencies.entrySet()) {
                     final String repoName = entry.getKey().getName();
-                    final List<String> repoDependencies = entry.getValue().stream().map(RepositoryObject::getName).toList(); 
+                    final List<String> repoDependencies = entry.getValue().stream().map(RepositoryObject::getName).collect(Collectors.toList()); 
                     stringDependencies.put(repoName, repoDependencies);
                 }
 
@@ -185,8 +184,9 @@ public final class DependencyCLI {
                     }
                     System.out.println(dependencyString.toString().trim());
                 }
-            }
-            default -> throw new IllegalArgumentException("Unknown output type: " + outputType);
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown output type: " + outputType);
         }
     }
 

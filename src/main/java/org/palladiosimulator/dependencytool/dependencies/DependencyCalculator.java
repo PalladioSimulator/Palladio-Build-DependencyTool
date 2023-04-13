@@ -155,7 +155,7 @@ public class DependencyCalculator {
         // Make sure every bundle/feature/.. is provided by exactly one repository.
         for (Map.Entry<String, Set<RepositoryObject>> entry : reverseMapWithDuplicates.entrySet()) {
             if (entry.getValue().size() > 1) {
-                List<String> repoNames = entry.getValue().stream().map(RepositoryObject::getName).toList();
+                List<String> repoNames = entry.getValue().stream().map(RepositoryObject::getName).collect(Collectors.toList());
                 LOGGER.warning(entry.getKey()  + " is provided by multiple repositories: " + repoNames + " using " + reverseMap.get(entry.getKey()) + ".");
             }
         }

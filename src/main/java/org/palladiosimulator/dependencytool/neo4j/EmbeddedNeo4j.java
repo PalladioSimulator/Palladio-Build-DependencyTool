@@ -141,7 +141,7 @@ public class EmbeddedNeo4j implements AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         if (this.managementService != null) {
             LOGGER.info("Shut down database");
             this.managementService.shutdown();
