@@ -33,8 +33,7 @@ The `<access-token>` parameter must be replaced by a [personal access token](htt
 git clone git@github.com:PalladioSimulator/Palladio-Build-DependencyTool.git
 cd ./Palladio-Build-DependencyTool/
 mvn clean package
-cd ./target/deploy/
--jar target/deploy/dependencytool.jar -at <your-token> -ri Palladio-Build-UpdateSite -ii -us "https://updatesite.palladio-simulator.com/" -o topology -j PalladioSimulator
+java -jar target/deploy/dependencytool.jar -at <your-token> -ri Palladio-Build-UpdateSite -ii -us "https://updatesite.palladio-simulator.com/" -o topology -j PalladioSimulator
 ```
 
 ### Neo4j Interaction
