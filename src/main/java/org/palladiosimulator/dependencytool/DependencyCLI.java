@@ -92,11 +92,7 @@ public final class DependencyCLI {
             dc.addAll(repos);
 
             final Map<RepositoryObject, Set<RepositoryObject>> dependencies = dc.getDependencies();
-            final GraphicalRepresentation graphRep = new GraphicalRepresentation(dependencies);
-            graphRep.createTopologyHierarchy();
-            final List<Set<RepositoryObject>> topology = graphRep.getTopologyHierachy();
-
-            createOutput(outputType, jsonOutput, dependencies, topology);
+            createOutput(outputType, jsonOutput, dependencies);
         } catch (IOException e) {
             LOGGER.warning("Please make sure you entered the correct organization and authentication token. "
                     + e.getMessage());
@@ -122,7 +118,7 @@ public final class DependencyCLI {
     }
 
     private static void createOutput(OutputType outputType, boolean jsonOutput,
-            Map<RepositoryObject, Set<RepositoryObject>> dependencies, List<Set<RepositoryObject>> topology) throws JsonProcessingException {
+            Map<RepositoryObject, Set<RepositoryObject>> dependencies) throws JsonProcessingException {
 
         final ObjectMapper objectMapper = new ObjectMapper();
         final DefaultPrettyPrinter pp = new DefaultPrettyPrinter();
@@ -138,6 +134,10 @@ public final class DependencyCLI {
                 }
                 break;
             case TOPOLOGY:
+                final GraphicalRepresentation graphRep = new GraphicalRepresentation(dependencies);
+                graphRep.createTopologyHierarchy();
+                final List<Set<RepositoryObject>> topology = graphRep.getTopologyHierachy();
+
                 if (jsonOutput) {
                     System.out.println(objectWriter.withView(Views.Topology.class).writeValueAsString(topology));
                 } else {
