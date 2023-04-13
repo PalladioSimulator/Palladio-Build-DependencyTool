@@ -41,8 +41,7 @@ java -jar target/deploy/dependencytool.jar -at <your-token> -ri Palladio-Build-U
 git clone git@github.com:PalladioSimulator/Palladio-Build-DependencyTool.git
 cd ./Palladio-Build-DependencyTool/
 mvn clean package
-cd ./target/deploy/
-java -jar ./dependencytool.jar -at <access-token> -ii -us "https://updatesite.palladio-simulator.com/" -o NEO4J PalladioSimulator
+java -jar target/deploy/dependencytool.jar -at <your-token> -ri Palladio-Build-UpdateSite -ii -us "https://updatesite.palladio-simulator.com/" -o neo4j PalladioSimulator
 # Use the same version as defined in the pom.xml
 docker run --rm -p7474:7474 -p7687:7687 -v $PWD/neo4j/data:/data -v $PWD/neo4j/logs:/logs neo4j:4.4.19
 # Open the browser at localhost:7474 and login using user and passwort `neo4j`
