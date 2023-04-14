@@ -1,5 +1,8 @@
 package org.palladiosimulator.dependencytool.dependencies;
 
+/**
+ * The type of P2Repository to use.
+ */
 public enum UpdateSiteTypes {
     NIGHTLY, RELEASE;
     

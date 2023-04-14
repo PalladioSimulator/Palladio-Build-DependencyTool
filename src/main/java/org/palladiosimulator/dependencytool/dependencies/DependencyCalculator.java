@@ -22,7 +22,10 @@ import org.palladiosimulator.dependencytool.github.RepositoryObject;
 import org.xml.sax.SAXException;
 
 /**
- *  Handles the assignment of provided objects to required objects.
+ *  Computes dependencies between GitHub repositories by using heuristics to guess the provided and required
+ *  features and bundles of a repository.
+ *  
+ *  @see RepositoryObject
  */
 public class DependencyCalculator {
 
@@ -35,13 +38,20 @@ public class DependencyCalculator {
     private final boolean includeArchived;
     private final boolean includeNoUpdateSite;
     
-    private Set<RepositoryObject> repositories;
+    private final Set<RepositoryObject> repositories;
 
     /**
-     * Create a new DependencyCalculator object to handle the assignment of dependencies.
+     * Constructs a new instance.
      *
-     * @param type The type of the update site to analyze. Can be nightly or release.
-     * @throws IOException 
+     * @param      updateSiteUrl        The update site url that is used to find the corresponing update site for a repo.
+     *                                  Provided bundles and features can only be computed for repositories with update sites
+     * @param      type                 The type of update site to use (release or nightly)
+     * @param      includeImports       Set to true to consider feature.xml includes while calculating dependencies
+     * @param      reposToIgnore        A set of repository names that should be ignored
+     * @param      includeArchived      Set to true to include repositories that were archived
+     * @param      includeNoUpdateSite  Set to true to include repositories for which no update site could be determined
+     * 
+     * @throws IOException if a repository or a file of a repository could not be read.
      */
     public DependencyCalculator(final String updateSiteUrl,
                                 final UpdateSiteTypes type,
@@ -58,10 +68,20 @@ public class DependencyCalculator {
         this.includeNoUpdateSite = includeNoUpdateSite;
     }
 
+    /**
+     * Add a GitHub repository to the dependency calculation.
+     *
+     * @param      repository  The GitHub repository to add
+     */
     public void add(GHRepository repository) {
         addAll(List.of(repository));
     }
 
+    /**
+     * Add all GitHub repositories to the dependency calculation.
+     *
+     * @param      repositories  A collection of GitHub repositories
+     */
     public void addAll(Collection<GHRepository> repositories) {
         ExecutorService ex = Executors.newFixedThreadPool(128);
 
@@ -101,7 +121,7 @@ public class DependencyCalculator {
     /**
      * Returns the repository dependencies as map.
      * 
-     * The first entry depends on every repository in the second entry.
+     * The repository in the key depends on every repository in its value.
      *
      * @return     A map representing the dependencies between repositories.
      */

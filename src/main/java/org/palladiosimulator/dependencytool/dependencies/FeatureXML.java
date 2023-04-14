@@ -8,15 +8,16 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 /**
- * Handling of feature.xml files.
+ * Represents a feature.xml file.
  */
 public class FeatureXML {
+
+    private static final String FEATURE_TAG = "feature";
+    private static final String PLUGIN_NODE_NAME = "plugin";
+    private static final String ID_TIME = "id";
     
-    private Set<String> featureSet = new HashSet<>();
-    private Set<String> bundleSet = new HashSet<>();
-    private String feature = "feature";
-    private String plugin = "plugin";
-    private String id = "id";
+    private final Set<String> featureSet = new HashSet<>();
+    private final Set<String> bundleSet = new HashSet<>();
     
     /**
      * Create a new feature.xml object from a feature.xml file.
@@ -24,8 +25,8 @@ public class FeatureXML {
      * @param doc The content of the feature.xml file.
      * @param includeImports Additionally parse imports if true.
      */
-    public FeatureXML(Document doc, Boolean includeImports) {
-        NodeList nList = doc.getElementsByTagName(feature).item(0).getChildNodes();
+    public FeatureXML(Document doc, boolean includeImports) {
+        NodeList nList = doc.getElementsByTagName(FEATURE_TAG).item(0).getChildNodes();
         for (int i = 0; i < nList.getLength(); i++) {
             Node nNode = nList.item(i);
             Boolean isNode = nNode.getNodeType() == Node.ELEMENT_NODE;
@@ -34,10 +35,10 @@ public class FeatureXML {
                 parseImports(nNode);
             }
             // check for sub feature or plugin definitions
-            if (isNode && nNode.getNodeName().equals(feature)) {
-                featureSet.add(nNode.getAttributes().getNamedItem(id).getTextContent());
-            } else if (isNode && nNode.getNodeName().equals(plugin)) {
-                bundleSet.add(nNode.getAttributes().getNamedItem(id).getTextContent());
+            if (isNode && nNode.getNodeName().equals(FEATURE_TAG)) {
+                featureSet.add(nNode.getAttributes().getNamedItem(ID_TIME).getTextContent());
+            } else if (isNode && nNode.getNodeName().equals(PLUGIN_NODE_NAME)) {
+                bundleSet.add(nNode.getAttributes().getNamedItem(ID_TIME).getTextContent());
             }
             // check for additionally includes features
             if (isNode && nNode.getNodeName().equals("includes")) {
@@ -46,10 +47,20 @@ public class FeatureXML {
         }
     }
     
+    /**
+     * Returns the features that are required by this feature.xml.
+     *
+     * @return     The required features.
+     */
     public Set<String> getRequiredFeatures() {
         return featureSet;
     }
     
+    /**
+     * Returns the bundles that are required by this feature.xml.
+     *
+     * @return     The required bundles.
+     */
     public Set<String> getRequiredBundles() {
         return bundleSet;
     }
@@ -61,9 +72,9 @@ public class FeatureXML {
             if (childNode.getNodeName().equals("import")) {
                 for (int k = 0; k < childNode.getAttributes().getLength(); k++) {
                     Node attr = childNode.getAttributes().item(k);
-                    if (attr.getNodeName().equals(feature)) {
+                    if (attr.getNodeName().equals(FEATURE_TAG)) {
                         featureSet.add(attr.getTextContent());
-                    } else if (attr.getNodeName().equals(plugin)) {
+                    } else if (attr.getNodeName().equals(PLUGIN_NODE_NAME)) {
                         bundleSet.add(attr.getTextContent());
                     }
                 }
@@ -75,7 +86,7 @@ public class FeatureXML {
     private void parseIncludes(Node nNode) {
         for (int i = 0; i < nNode.getAttributes().getLength(); i++) {
             Node attr = nNode.getAttributes().item(i);
-            if (attr.getNodeName().equals(id)) {
+            if (attr.getNodeName().equals(ID_TIME)) {
                 featureSet.add(attr.getTextContent());
             }
         }
