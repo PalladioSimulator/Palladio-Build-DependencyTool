@@ -173,8 +173,8 @@ public class EmbeddedNeo4j implements AutoCloseable {
      * @param repository the repository
      */
     private void commitBundle(final RepositoryObject repository) {
-        for (final String bundle : repository.getRequiredBundles()) {
-            try (Transaction tx = this.databaseService.beginTx()) {
+        try (Transaction tx = this.databaseService.beginTx()) {
+            for (final String bundle : repository.getRequiredBundles()) {
                 final String repositoryName = repository.getName();
                 final Node repositoryNode = this.getOrCreateRepositoryNode(tx, repositoryName);
 
@@ -182,12 +182,11 @@ public class EmbeddedNeo4j implements AutoCloseable {
 
                 this.createRelationship(repositoryNode, bundleNode, Relationships.REQUIRE_BUNDLE);
 
-                tx.commit();
                 LOGGER.info(repositoryName + " -> " + bundle);
             }
-        }
-        for (final String bundle : repository.getProvidedBundles()) {
-            try (Transaction tx = this.databaseService.beginTx()) {
+        
+            for (final String bundle : repository.getProvidedBundles()) {
+            
                 final String repositoryName = repository.getName();
                 final Node repositoryNode = this.getOrCreateRepositoryNode(tx, repositoryName);
 
@@ -195,9 +194,12 @@ public class EmbeddedNeo4j implements AutoCloseable {
 
                 this.createRelationship(repositoryNode, bundleNode, Relationships.PROVIDE_BUNDLE);
 
-                tx.commit();
+
                 LOGGER.info(repositoryName + " -> " + bundle);
+
             }
+
+            tx.commit();
         }
     }
 
@@ -207,8 +209,8 @@ public class EmbeddedNeo4j implements AutoCloseable {
      * @param repository the repository
      */
     private void commitFeature(final RepositoryObject repository) {
-        for (final String feature : repository.getRequiredFeatures()) {
-            try (Transaction tx = this.databaseService.beginTx()) {
+        try (Transaction tx = this.databaseService.beginTx()) {
+            for (final String feature : repository.getRequiredFeatures()) {
                 final String repositoryName = repository.getName();
                 final Node repositoryNode = this.getOrCreateRepositoryNode(tx, repositoryName);
 
@@ -216,12 +218,10 @@ public class EmbeddedNeo4j implements AutoCloseable {
 
                 this.createRelationship(repositoryNode, featureNode, Relationships.REQUIRE_FEATURE);
 
-                tx.commit();
                 LOGGER.info(repositoryName + " -> " + feature);
             }
-        }
-        for (final String feature : repository.getProvidedFeatures()) {
-            try (Transaction tx = this.databaseService.beginTx()) {
+        
+            for (final String feature : repository.getProvidedFeatures()) {
                 final String repositoryName = repository.getName();
                 final Node repositoryNode = this.getOrCreateRepositoryNode(tx, repositoryName);
 
@@ -229,9 +229,10 @@ public class EmbeddedNeo4j implements AutoCloseable {
 
                 this.createRelationship(repositoryNode, featureNode, Relationships.PROVIDE_FEATURE);
 
-                tx.commit();
                 LOGGER.info(repositoryName + " -> " + feature);
             }
+
+            tx.commit();
         }
     }
 
@@ -241,8 +242,8 @@ public class EmbeddedNeo4j implements AutoCloseable {
      * @param repository the repository
      */
     private void commitRepository(final RepositoryObject repository, final Set<RepositoryObject> dependencies) {
-        for (final RepositoryObject dependency : dependencies) {
-            try (Transaction tx = this.databaseService.beginTx()) {
+        try (Transaction tx = this.databaseService.beginTx()) {
+            for (final RepositoryObject dependency : dependencies) {
                 final String repositoryName = repository.getName();
                 final Node repositoryNode = this.getOrCreateRepositoryNode(tx, repositoryName);
 
@@ -251,9 +252,9 @@ public class EmbeddedNeo4j implements AutoCloseable {
 
                 this.createRelationship(repositoryNode, dependencyNode, Relationships.REPOSITORY);
 
-                tx.commit();
                 LOGGER.info(repositoryName + " -> " + dependencyName);
             }
+            tx.commit();
         }
     }
 
