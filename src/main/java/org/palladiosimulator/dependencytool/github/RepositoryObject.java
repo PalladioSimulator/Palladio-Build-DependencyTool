@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 /**
- * An object holding all relevant information about the according repository.
+ * Represents a GitHub repository with it's provided and required bundles and features.
  */
 @JsonPropertyOrder({"name", "githubUrl", "updatesiteUrl"})
 public class RepositoryObject {
@@ -26,25 +26,31 @@ public class RepositoryObject {
     private static final Logger LOGGER = Logger.getLogger(RepositoryObject.class.getName());
 
     private final GHRepository repository;
+
+    private final Set<String> requiredBundles;
+    private final Set<String> requiredFeatures;
+    private final Set<String> providedBundles;
+    private final Set<String> providedFeatures;
+
     private String updateSite;
 
-    private Set<String> requiredBundles;
-    private Set<String> requiredFeatures;
-
-    private Set<String> providedBundles;
-    private Set<String> providedFeatures;
-
     /**
-     * Create a new RepositoryObject from the given repository name.
+     * Constructs a new instance.
+     *
+     * @param      repository      The repository to be analyzed
+     * @param      updateSite      The update site url that is used to find the corresponing update site for a repo.
+     *                             Provided bundles and features can only be computed for repositories with update sites
+     * @param      updateSiteType  The type of update site to use (release or nightly)
+     * @param      includeImports  Set to true to consider feature.xml includes while calculating dependencies
      * 
-     * @param repository The Github repository.
-     * @param updateSite The update site to use.
-     * @param includeImports If true the dependencies of this repository will also contain imported plugins and features.
-     * @throws IOException
-     * @throws ParserConfigurationException
-     * @throws SAXException
+     * @throws IOException if a repository or file of a repository could not be read.
+     * @throws ParserConfigurationException indicates an issue with parsing of feature.xml files.
+     * @throws SAXException indicates an issue with parsing of feature.xml files.
      */
-    public RepositoryObject(GHRepository repository, String updateSite, UpdateSiteTypes updateSiteType, boolean includeImports) throws IOException, ParserConfigurationException, SAXException {
+    public RepositoryObject(GHRepository repository,
+                            String updateSite,
+                            UpdateSiteTypes updateSiteType,
+                            boolean includeImports) throws IOException, ParserConfigurationException, SAXException {
         this.repository = repository;
 
         this.requiredBundles = new HashSet<>();

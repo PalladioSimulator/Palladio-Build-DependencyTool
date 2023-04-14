@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 /**
- * Parses MANIFEST.MF files for all bundles in the given repository to detect dependencies.
+ * Calculate required features and bundles for a GitHub repository that are defined by a manifest.mf file.
  */
 public class ManifestMFDependencyHandler {
 
@@ -18,6 +18,11 @@ public class ManifestMFDependencyHandler {
     
     private final GHRepository repository;
     
+    /**
+     * Constructs a new instance.
+     *
+     * @param      repository  The repository to be analyzed
+     */
     public ManifestMFDependencyHandler(GHRepository repository) {
         this.repository = repository;
     }

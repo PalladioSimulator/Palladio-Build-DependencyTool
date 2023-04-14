@@ -8,13 +8,17 @@ import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
 /**
- * Holds content of a manifest.mf file.
+ * Represent a manifest.mf file.
  */
-
 public class ManifestMF {
 
-    private Manifest manifest;
+    private final Manifest manifest;
     
+    /**
+     * Create a new {@link ManifestMF} object from a manifest.mf file.
+     *
+     * @param      stream  The input stream that points to a manifest.mf file.
+     */
     public ManifestMF(InputStream stream) throws IOException {
         manifest = new Manifest(stream);
     }

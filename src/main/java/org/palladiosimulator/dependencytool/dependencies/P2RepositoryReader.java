@@ -17,20 +17,23 @@ import aQute.p2.packed.Unpack200;
 import aQute.p2.provider.P2Impl;
 
 /**
- * Parser for P2Repositories.
+ * Reader for P2Repositories that allows to compute the features and bundles that are provided by a repositories.
  */
 public class P2RepositoryReader implements Closeable {
     
     private final ExecutorService executor;
     private final PromiseFactory promiseFactory;
 
+    /**
+     * Constructs a new instance.
+     */
     public P2RepositoryReader() {
         executor = Executors.newSingleThreadExecutor();
         promiseFactory = new PromiseFactory(executor);
     }
 
     /**
-     * Returns all features from the update site.
+     * Returns all provided features from the update site.
      *  
      * @param path Path to the repository that should be read.
      * @return A set of names of features provided by this repository.
@@ -50,7 +53,7 @@ public class P2RepositoryReader implements Closeable {
     }
     
     /**
-     * Returns all bundles from the update site.
+     * Returns all provided bundles from the update site.
      * 
      * @param path Path to the repository that should be read.
      * @return A set of names of bundles provided by this repository.

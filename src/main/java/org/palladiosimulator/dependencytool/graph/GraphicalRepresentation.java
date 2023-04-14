@@ -17,7 +17,6 @@ import org.palladiosimulator.dependencytool.github.RepositoryObject;
 
 /**
  * Holds a graph object constructed out of dependencies given in repository Objects.
- *
  */
 public class GraphicalRepresentation {
 

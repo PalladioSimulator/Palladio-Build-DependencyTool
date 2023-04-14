@@ -17,6 +17,9 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
+/**
+ * Calculate required features and bundles for a GitHub repository that are defined by a feature.xml file.
+ */
 public class FeatureXMLHandler {
     private static final Logger LOGGER = Logger.getLogger(FeatureXMLHandler.class.getName());
     
@@ -25,6 +28,12 @@ public class FeatureXMLHandler {
     private final Set<String> requiredBundles = new HashSet<>();
     private final Set<String> requiredFeatures = new HashSet<>();
     
+    /**
+     * Constructs a new instance.
+     *
+     * @param      repository      The repository to be analyzed
+     * @param      includeImports  Indicates if the imports in the feature.xml should be included in the calculation
+     */
     public FeatureXMLHandler(GHRepository repository, boolean includeImports) throws IOException, ParserConfigurationException, SAXException {
         this.repository = repository;
         this.includeImports = includeImports;
@@ -32,15 +41,25 @@ public class FeatureXMLHandler {
         calculateDependencies();
     }
 
+    /**
+     * Returns the bundles that are required by this feature.xml.
+     *
+     * @return     The required bundles.
+     */
     public Set<String> getRequiredBundles() {
         return requiredBundles;
     }
 
+    /**
+     * Returns the features that are required by this feature.xml.
+     *
+     * @return     The required features.
+     */
     public Set<String> getRequiredFeatures() {
         return requiredFeatures;
     }
 
-    private void calculateDependencies() throws IOException, ParserConfigurationException, SAXException{
+    private void calculateDependencies() throws IOException, ParserConfigurationException, SAXException {
         // get required bundles and features from all Feature.xml
         Set<String> featureXMLs = new HashSet<>();
         for (String feature : getFeatures()) {
