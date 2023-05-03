@@ -121,11 +121,7 @@ public final class DependencyCLI {
             Map<RepositoryObject, Set<RepositoryObject>> dependencies) throws JsonProcessingException {
 
         final ObjectMapper objectMapper = new ObjectMapper();
-        final DefaultPrettyPrinter pp = new DefaultPrettyPrinter();
-        final DefaultPrettyPrinter.Indenter indenter = new DefaultIndenter("  ", DefaultIndenter.SYS_LF);
-        pp.indentArraysWith(indenter);
-        pp.indentObjectsWith(indenter);
-        final ObjectWriter objectWriter = objectMapper.writer(pp);
+        final ObjectWriter objectWriter = objectMapper.writer();
 
         switch (outputType) {
             case NEO4J:
