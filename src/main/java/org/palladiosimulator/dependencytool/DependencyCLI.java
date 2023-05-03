@@ -15,6 +15,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
+import org.kohsuke.github.GitHubBuilder;
 import org.palladiosimulator.dependencytool.dependencies.DependencyCalculator;
 import org.palladiosimulator.dependencytool.dependencies.UpdateSiteTypes;
 import org.palladiosimulator.dependencytool.github.RepositoryObject;
@@ -52,7 +53,6 @@ public final class DependencyCLI {
             return;
         }
 
-        final String githubOAuthToken = cmd.getOptionValue("at");
         final String updateSiteUrl = cmd.getOptionValue("us");
         final boolean includeImports = cmd.hasOption("ii");
         final boolean jsonOutput = cmd.hasOption("json");
@@ -60,6 +60,20 @@ public final class DependencyCLI {
         final boolean includeNoUpdateSite = cmd.hasOption("inus");
         UpdateSiteTypes updateSiteType = UpdateSiteTypes.NIGHTLY;
         final Set<String> reposToIgnore = new HashSet<>();
+
+        final GitHub github;
+        try {
+            if (cmd.hasOption("at")) {
+                final String githubOAuthToken = cmd.getOptionValue("at");
+                github = GitHub.connectUsingOAuth(githubOAuthToken);
+            } else {
+                github = GitHubBuilder.fromEnvironment().build();
+            }
+        } catch (IOException e) {
+            LOGGER.warning("Could not connect to GitHub! Did you set your login data / token?: " + e.getMessage());
+            System.exit(1);
+            return;
+        }
 
         if (cmd.hasOption("help")) {
             printHelp(options);
@@ -85,25 +99,25 @@ public final class DependencyCLI {
         final OutputType outputType = OutputType.valueOf(cmd.getOptionValue("o").toUpperCase());
 
         try {
-            Set<GHRepository> repos = repositoriesFromArgs(cmd.getArgList(), GitHub.connectUsingOAuth(githubOAuthToken));
+            Set<GHRepository> repos = repositoriesFromArgs(cmd.getArgList(), github);
             final DependencyCalculator dc = new DependencyCalculator(updateSiteUrl, updateSiteType, includeImports, reposToIgnore, includeArchived, includeNoUpdateSite);
             dc.addAll(repos);
 
             final Map<RepositoryObject, Set<RepositoryObject>> dependencies = dc.getDependencies();
             createOutput(outputType, jsonOutput, dependencies);
         } catch (IOException e) {
-            LOGGER.warning("Please make sure you entered the correct organization and authentication token. "
-                    + e.getMessage());
+            LOGGER.warning("An error occured during calculating the dependencies: " + e.getMessage());
+            System.exit(1);
         }
     }
 
     private static Options createOptions() {
         final Options options = new Options();
-        options.addRequiredOption("at", "oauth", true, "OAuth authentication token for GitHub API.")
-                .addRequiredOption("us", "update-site", true, "The update site to use")
+        options.addRequiredOption("us", "update-site", true, "The update site to use")
                 .addRequiredOption("o", "output", true, "Decide what to output. One of " + Arrays.toString(OutputType.values()) + ".");
 
         options.addOption("h", "help", false, "Print this message")
+                .addOption("at", "oauth", true, "OAuth authentication token for GitHub API. Can be omiited to use the GITHUB_OAUTH environment variable.")
                 .addOption("ur", "use-release", false, "Use release update site instead of nightly.")
                 .addOption("ii", "include-imports", false, "Consider feature.xml includes while calculating dependencies.")
                 .addOption("j", "json", false, "Format the output as json.")
