@@ -13,6 +13,7 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.kohsuke.github.GHContent;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.github.GitHubBuilder;
@@ -100,6 +101,20 @@ public final class DependencyCLI {
 
         try {
             Set<GHRepository> repos = repositoriesFromArgs(cmd.getArgList(), github);
+
+            if (cmd.hasOption("rrf")) {
+                String requiredFile = cmd.getOptionValue("rrf");
+
+                repos.removeIf(repo -> {
+                    try {
+                        GHContent content = repo.getFileContent(requiredFile);
+                        return !content.isFile();
+                    } catch (IOException e) {
+                        return true;
+                    }
+                });
+            }
+
             final DependencyCalculator dc = new DependencyCalculator(updateSiteUrl, updateSiteType, includeImports, reposToIgnore, includeArchived, includeNoUpdateSite);
             dc.addAll(repos);
 
@@ -124,7 +139,8 @@ public final class DependencyCLI {
                 .addOption("ri", "repository-ignore", true, "Specify one or more repositories which should be ignored when calculating dependencies. Split by an underscore.")
                 .addOption("rif", "repository-ignore-file", true, "Path to file with repositories to ignore. Each repository name must be in a new line.")
                 .addOption("ia", "include-archived", false, "Include archived repositories into the dependency calculation.")
-                .addOption("inus", "include-no-updatesite", false, "Include repositories even if an update site could not be found.");
+                .addOption("inus", "include-no-updatesite", false, "Include repositories even if an update site could not be found.")
+                .addOption("rrf", "require-repo-file", true, "Filter repositories that do not have the file specified by `<arg>`");
 
         return options;
     }
