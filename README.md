@@ -25,6 +25,7 @@ By means of the instruction `mvn clean package`, the tool can be packed into an 
     * `-ri`, `--repository-ignore <arg>`, Specify one or more repositories which should be ignored when calculating dependencies. Split by one comma.
     * `-rif`, `--repository-ignore-file <arg>`, Path to file with repositories to ignore. Each repository name must be in a new line.
     * `-ur`, `--use-release`, Use release update site instead of nightly.
+    * `-rrf`, `--require-repo-file <arg>`, Filter repositories that do not have the file specified by `<arg>`.
 
 ### Sample Interaction
 The `<access-token>` parameter must be replaced by a [personal access token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token), since this tool loads the required data via the [GitHub API](https://docs.github.com/en/rest).
