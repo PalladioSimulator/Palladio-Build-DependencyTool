@@ -108,8 +108,12 @@ public final class DependencyCLI {
                 repos.removeIf(repo -> {
                     try {
                         GHContent content = repo.getFileContent(requiredFile);
-                        return !content.isFile();
+                        boolean remove = !content.isFile();
+                        if (remove)
+                            LOGGER.warning("File " + requiredFile + " missing in " + repo.getName() + ". skipping...");
+                        return remove;
                     } catch (IOException e) {
+                        LOGGER.warning("IOException while accessing " + requiredFile + " in " + repo.getName() + ". skipping...");
                         return true;
                     }
                 });
