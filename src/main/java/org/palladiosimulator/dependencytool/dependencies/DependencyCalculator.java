@@ -107,7 +107,12 @@ public class DependencyCalculator {
                 }
             })
             .filter(e -> e != null)
-            .filter(e -> includeNoUpdateSite || e.getUpdateSite() != null)
+            .filter(e -> {
+                boolean keep = includeNoUpdateSite || e.getUpdateSite() != null;
+                if (!keep)
+                    LOGGER.warning("No updatesite found for " + e.getName() + ". skipping...");
+                return keep;
+            })
             .collect(Collectors.toSet()));
 
         ex.shutdown();
