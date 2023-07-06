@@ -12,6 +12,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -113,6 +114,7 @@ public class DependencyCalculator {
                     LOGGER.warning("No updatesite found for " + e.getName() + ". skipping...");
                 return keep;
             })
+            .sorted()
             .collect(Collectors.toSet()));
 
         ex.shutdown();
@@ -169,13 +171,18 @@ public class DependencyCalculator {
         for (RepositoryObject repo : repositories) {
             Set<String> reverseKeys = map.apply(repo);
             for (String reverseKey : reverseKeys) {
-                reverseMap.put(reverseKey, repo);
 
-                Set<RepositoryObject> duplicates = reverseMapWithDuplicates.getOrDefault(reverseKey, new HashSet<>());
+                Set<RepositoryObject> duplicates = reverseMapWithDuplicates.getOrDefault(reverseKey, new TreeSet<>());
                 duplicates.add(repo);
                 reverseMapWithDuplicates.put(reverseKey, duplicates);
             }
         }
+
+        // TODO: Do not use the first in Alphabet but use the one that mimimizes the topology three depth
+        for (var entry : reverseMapWithDuplicates.entrySet()) {
+            reverseMap.put(entry.getKey(), entry.getValue().iterator().next());
+        }
+
 
         // Make sure every bundle/feature/.. is provided by exactly one repository.
         for (Map.Entry<String, Set<RepositoryObject>> entry : reverseMapWithDuplicates.entrySet()) {

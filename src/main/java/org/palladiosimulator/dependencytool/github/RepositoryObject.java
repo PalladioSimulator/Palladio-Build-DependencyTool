@@ -1,8 +1,8 @@
 package org.palladiosimulator.dependencytool.github;
 
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
  * Represents a GitHub repository with it's provided and required bundles and features.
  */
 @JsonPropertyOrder({"name", "githubUrl", "updatesiteUrl"})
-public class RepositoryObject {
+public class RepositoryObject implements Comparable<RepositoryObject> {
 
     private static final Logger LOGGER = Logger.getLogger(RepositoryObject.class.getName());
 
@@ -53,10 +53,10 @@ public class RepositoryObject {
                             boolean includeImports) throws IOException, ParserConfigurationException, SAXException {
         this.repository = repository;
 
-        this.requiredBundles = new HashSet<>();
-        this.requiredFeatures = new HashSet<>();
-        this.providedBundles = new HashSet<>();
-        this.providedFeatures = new HashSet<>();
+        this.requiredBundles = new TreeSet<>();
+        this.requiredFeatures = new TreeSet<>();
+        this.providedBundles = new TreeSet<>();
+        this.providedFeatures = new TreeSet<>();
 
         calculateRequired(includeImports);
         calculateProvided(updateSite, updateSiteType);
@@ -141,5 +141,10 @@ public class RepositoryObject {
                 this.updateSite = maybeUpdateSiteUrl;
             }
         }
+    }
+
+    @Override
+    public int compareTo(RepositoryObject o) {
+        return getName().compareTo(o.getName());
     }
 }
